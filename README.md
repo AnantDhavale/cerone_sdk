@@ -74,178 +74,62 @@ Ceron continuously monitors behavior over time and updates enforcement posture b
 
 ## Usage Examples
 
-### Example 1: Trading Agent
 
+
+## Usage Examples
+
+### Example 1: Basic Validation (Sync)
 ```python
 from ceron import CeronClient, ValidationResult
 
 client = CeronClient(api_key="sk_...")
-
-# Register trading agent
-trading_agent = client.create_agent(
-    purpose="Execute cryptocurrency trades based on market signals",
-    capabilities=["market_read", "trade_execute"]
-)
-
-def execute_trade(symbol, side, quantity):
-    """Execute trade with Ceron validation"""
-    
-    # Validate BEFORE executing
-    result = client.validate(
-        agent_id=trading_agent.agent_id,
-        action="trade_execute",
-        parameters={
-            "symbol": symbol,
-            "side": side,
-            "quantity": quantity
-        }
-    )
-    
-    if result.result == ValidationResult.APPROVED:
-        # Aligned with purpose → Execute
-        broker.execute_trade(symbol, side, quantity)
-        print(f"✓ Trade executed (alignment: {result.semantic_alignment:.2f})")
-    else:
-        # Drift detected → Block
-        print(f"✗ Trade blocked: {result.violations}")
-        alert_compliance_team(result)
-```
-
-### Example 2: Customer Support Agent
-
-```python
-from ceron import CeronClient, AgentWrapper, ValidationResult
-
-client = CeronClient(api_key="sk_...")
-
-# Create agent
-support_agent = client.create_agent(
-    purpose="Handle customer billing inquiries and process refunds",
-    capabilities=["database_read", "send_email", "process_refund"]
-)
-
-# Use wrapper for automatic validation
-agent = AgentWrapper(
-    ceron_client=client,
-    agent_id=support_agent.agent_id
-)
-
-# Decorator automatically validates before execution
-@agent.validate_action
-def process_refund(customer_id, amount):
-    """Process refund - automatically validated by Ceron"""
-    return billing_system.refund(customer_id, amount)
-
-@agent.validate_action
-def access_customer_data(customer_id):
-    """Access customer data - validated before execution"""
-    return database.query("SELECT * FROM customers WHERE id = ?", customer_id)
-
-# Usage
-try:
-    # This will be validated and executed if aligned
-    process_refund(customer_id="12345", amount=50.00)
-except PermissionError as e:
-    print(f"Action blocked by Ceron: {e}")
-```
-
-### Example 3: Streaming Data Processing
-
-```python
-import asyncio
-from ceron import CeronClient, ValidationResult
-
-client = CeronClient(api_key="sk_...")
-
-# Register data processing agent
-data_agent = client.create_agent(
-    purpose="Analyze customer churn data and send retention offers",
-    capabilities=["database_read", "send_email"]
-)
-
-async def process_customer_stream(customer_stream):
-    """Process streaming data with async validation"""
-    
-    async for customer in customer_stream:
-        if customer.churn_risk > 0.8:
-            # Validate action asynchronously
-            result = await client.validate_async(
-                agent_id=data_agent.agent_id,
-                action="send_retention_offer",
-                parameters={
-                    "customer_id": customer.id,
-                    "offer_type": "discount"
-                }
-            )
-            
-            if result.result == ValidationResult.APPROVED:
-                await send_offer(customer)
-            else:
-                await log_blocked_offer(customer, result.violations)
-
-# Run async processing
-asyncio.run(process_customer_stream(customer_stream))
-```
-
-### Example 4: Batch Validation
-
-```python
-from ceron import CeronClient, ValidationResult
-
-client = CeronClient(api_key="sk_...")
-
-# Validate multiple actions at once
-validations = [
-    {
-        "agent_id": "agt_123",
-        "action": "query_database",
-        "parameters": {"table": "customers"}
-    },
-    {
-        "agent_id": "agt_123",
-        "action": "send_email",
-        "parameters": {"to": "customer@example.com"}
-    },
-    {
-        "agent_id": "agt_123",
-        "action": "update_record",
-        "parameters": {"id": 456, "status": "processed"}
-    }
-]
-
-results = client.validate_batch(validations)
-
-# Process results
-for result in results:
-    if result.result == ValidationResult.APPROVED:
-        execute_action(result.action, result.agent_id)
-    else:
-        print(f"Blocked: {result.action} - {result.violations}")
-```
-
-### Example 5: High-Throughput with Caching
-
-```python
-from ceron import CeronClient, ValidationResult
-
-# Enable caching for high-trust actions
-client = CeronClient(
-    api_key="sk_...",
-    enable_cache=True  # Cache approvals with trust > 0.95 for 5 minutes
-)
 
 agent = client.create_agent(
-    purpose="Process payment transactions",
-    capabilities=["payment_gateway"]
+    purpose="Handle approved support operations",
+    capabilities=["read_records", "send_notifications"],
 )
 
-# First call: Full validation (~50ms)
-result1 = client.validate(agent.agent_id, "process_payment", {...})
+result = client.validate(
+    agent_id=agent.agent_id,
+    action="read_records",
+    parameters={"resource": "customer_profile"},
+)
 
-# Subsequent calls: Cached if high trust (~1ms)
-result2 = client.validate(agent.agent_id, "process_payment", {...})
-result3 = client.validate(agent.agent_id, "process_payment", {...})
-```
+if result.result == ValidationResult.APPROVED:
+    run_action()
+else:
+    handle_block(result.violations)
+
+### **Example 2: Async Validation**
+
+import asyncio
+from ceron import CeronClient
+
+client = CeronClient(api_key="sk_...")
+
+async def check():
+    return await client.validate_async(
+        agent_id="agt_123",
+        action="send_notification",
+        parameters={"channel": "email"},
+    )
+
+result = asyncio.run(check())
+print(result.result)
+
+### **Example 3: Batch Validation**
+
+from ceron import CeronClient
+
+client = CeronClient(api_key="sk_...")
+
+results = client.validate_batch([
+    {"agent_id": "agt_123", "action": "read_records", "parameters": {}},
+    {"agent_id": "agt_123", "action": "update_record", "parameters": {"id": "42"}},
+])
+
+for r in results:
+    print(r.action, r.result)
 
 ## API Reference
 
