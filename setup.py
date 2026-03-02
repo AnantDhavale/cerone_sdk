@@ -12,7 +12,7 @@ os.chdir(ROOT)
 setup(
     name="ceron",
     version="1.0.0",
-    author="Homer Semantics",
+    author="Anant Dhavale for Homer Semantics",
     author_email="info@homersemantics.com",
     description="Zero Trust Security for AI Agents",
     license="Proprietary - see LICENSE file",
@@ -20,9 +20,9 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/homer-semantics/ceron-python",
     project_urls={
-        "Documentation": "https://docs.homersemantics.com/ceron",
+        "Documentation": "https://aztp.homersemantics.com/",
         "Bug Tracker": "https://github.com/homer-semantics/ceron-python/issues",
-        "Homepage": "https://ceron.ai",
+        "Homepage": "https://aztp.homersemantics.com/",
     },
     packages=find_packages(include=["ceron", "ceron.*"]),
     py_modules=["ceron_sdk"],
