@@ -1,14 +1,14 @@
 """
-Ceron Python SDK
+Cerone Python SDK
 Zero Trust Security for AI Agents
 
 Installation:
-    pip install ceron
+    pip install cerone
 
 Usage:
-    from ceron import CeronClient
+    from cerone import CeroneClient
 
-    client = CeronClient(api_key="your_api_key")
+    client = CeroneClient(api_key="your_api_key")
     result = client.validate(agent_id="agt_123", action="trade_execute", parameters={...})
 """
 
@@ -55,8 +55,8 @@ class ValidationResult(Enum):
 
 
 @dataclass
-class CeronResponse:
-    """Response from Ceron validation."""
+class CeroneResponse:
+    """Response from Cerone validation."""
 
     result: ValidationResult
     semantic_alignment: float
@@ -80,19 +80,19 @@ class AgentCertificate:
     created_at: str
 
 
-class CeronException(Exception):
-    """Base exception for Ceron SDK."""
+class CeroneException(Exception):
+    """Base exception for Cerone SDK."""
 
 
-class AuthenticationError(CeronException):
+class AuthenticationError(CeroneException):
     """Raised when API key is invalid."""
 
 
-class ValidationError(CeronException):
+class ValidationError(CeroneException):
     """Raised when validation fails."""
 
 
-class RateLimitError(CeronException):
+class RateLimitError(CeroneException):
     """Raised when rate limit is exceeded."""
 
 
@@ -104,8 +104,8 @@ class _ServerError(ValidationError):
     """Raised for retryable 5xx server errors."""
 
 
-class CeronClient:
-    """Ceron API client for validating AI agent actions."""
+class CeroneClient:
+    """Cerone API client for validating AI agent actions."""
 
     _IDEMPOTENT_METHODS = {"GET", "HEAD", "OPTIONS"}
 
@@ -119,10 +119,10 @@ class CeronClient:
         retry_non_idempotent: bool = False,
     ):
         """
-        Initialize Ceron client.
+        Initialize Cerone client.
 
         Args:
-            api_key: Your Ceron API key.
+            api_key: Your Cerone API key.
             base_url: API endpoint (default: production).
             timeout: Request timeout in seconds.
             max_retries: Number of retry attempts for eligible requests.
@@ -144,7 +144,7 @@ class CeronClient:
             {
                 "X-API-Key": api_key,
                 "Content-Type": "application/json",
-                "User-Agent": f"ceron-python-sdk/{__version__}",
+                "User-Agent": f"cerone-python-sdk/{__version__}",
             }
         )
 
@@ -168,7 +168,7 @@ class CeronClient:
             created_at=response["created_at"],
         )
 
-    def validate(self, agent_id: str, action: str, parameters: Dict[str, Any]) -> CeronResponse:
+    def validate(self, agent_id: str, action: str, parameters: Dict[str, Any]) -> CeroneResponse:
         """Validate an agent action in real-time."""
         if self._cache is not None:
             cache_key = self._cache_key(agent_id, action, parameters)
@@ -176,7 +176,7 @@ class CeronClient:
             if cached and time.time() - cached["timestamp"] < 300:
                 if cached["trust_score"] > 0.95:
                     logger.debug("Cache hit for %s", cache_key)
-                    return cast(CeronResponse, cached["response"])
+                    return cast(CeroneResponse, cached["response"])
 
         start_time = time.time()
 
@@ -190,7 +190,7 @@ class CeronClient:
 
         latency_ms = int((time.time() - start_time) * 1000)
 
-        ceron_response = CeronResponse(
+        cerone_response = CeroneResponse(
             result=ValidationResult(response["result"]),
             semantic_alignment=response["semantic_alignment"],
             trust_score=response["trust_score"],
@@ -201,18 +201,18 @@ class CeronClient:
             latency_ms=latency_ms,
         )
 
-        if self._cache is not None and ceron_response.result == ValidationResult.APPROVED:
-            if ceron_response.trust_score > 0.95:
+        if self._cache is not None and cerone_response.result == ValidationResult.APPROVED:
+            if cerone_response.trust_score > 0.95:
                 cache_key = self._cache_key(agent_id, action, parameters)
                 self._cache[cache_key] = {
-                    "response": ceron_response,
-                    "trust_score": ceron_response.trust_score,
+                    "response": cerone_response,
+                    "trust_score": cerone_response.trust_score,
                     "timestamp": time.time(),
                 }
 
-        return ceron_response
+        return cerone_response
 
-    async def validate_async(self, agent_id: str, action: str, parameters: Dict[str, Any]) -> CeronResponse:
+    async def validate_async(self, agent_id: str, action: str, parameters: Dict[str, Any]) -> CeroneResponse:
         """Async version of validate() for high-throughput scenarios."""
         if not _AIOHTTP_AVAILABLE:
             raise ValidationError("aiohttp is required for async methods. Install with: pip install aiohttp")
@@ -229,7 +229,7 @@ class CeronClient:
 
         latency_ms = int((time.time() - start_time) * 1000)
 
-        return CeronResponse(
+        return CeroneResponse(
             result=ValidationResult(data["result"]),
             semantic_alignment=data["semantic_alignment"],
             trust_score=data["trust_score"],
@@ -240,12 +240,12 @@ class CeronClient:
             latency_ms=latency_ms,
         )
 
-    def validate_batch(self, validations: List[Dict[str, Any]]) -> List[CeronResponse]:
+    def validate_batch(self, validations: List[Dict[str, Any]]) -> List[CeroneResponse]:
         """Validate multiple actions in a single request."""
         response = self._request("POST", "/v1/validate/batch", json={"validations": validations})
 
         return [
-            CeronResponse(
+            CeroneResponse(
                 result=ValidationResult(r["result"]),
                 semantic_alignment=r["semantic_alignment"],
                 trust_score=r["trust_score"],
@@ -406,7 +406,7 @@ class CeronClient:
         self.close()
         if self._async_session is not None and not self._async_session.closed:
             logger.warning(
-                "Async session is still open. Use 'async with CeronClient(...)' or await client.aclose()."
+                "Async session is still open. Use 'async with CeroneClient(...)' or await client.aclose()."
             )
 
     async def __aenter__(self):
@@ -420,12 +420,12 @@ class CeronClient:
 class AgentWrapper:
     """Wrapper class that automatically validates all agent actions."""
 
-    def __init__(self, ceron_client: CeronClient, agent_id: str):
-        self.client = ceron_client
+    def __init__(self, cerone_client: CeroneClient, agent_id: str):
+        self.client = cerone_client
         self.agent_id = agent_id
 
     def validate_action(self, func: F) -> F:
-        """Decorator that validates function calls through Ceron."""
+        """Decorator that validates function calls through Cerone."""
 
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any):
@@ -439,18 +439,18 @@ class AgentWrapper:
                 return func(*args, **kwargs)
 
             logger.warning("Action '%s' blocked: %s", action, result.violations)
-            raise PermissionError(f"Ceron blocked action: {', '.join(result.violations)}")
+            raise PermissionError(f"Cerone blocked action: {', '.join(result.violations)}")
 
         return cast(F, wrapper)
 
 
 __all__ = [
-    "CeronClient",
+    "CeroneClient",
     "AgentWrapper",
-    "CeronResponse",
+    "CeroneResponse",
     "AgentCertificate",
     "ValidationResult",
-    "CeronException",
+    "CeroneException",
     "AuthenticationError",
     "ValidationError",
     "RateLimitError",

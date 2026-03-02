@@ -1,15 +1,15 @@
 
-# Ceron Python SDK (Beta)
+# Cerone Python SDK (Beta)
 
 Zero Trust security and production governance for AI agents.
 
-Ceron helps teams enforce policy controls on agent actions and maintain operational accountability in production environments.  
+Cerone helps teams enforce policy controls on agent actions and maintain operational accountability in production environments.  
 The SDK is currently in early-access beta for selected users.  Thus, it provides Zero Trust Security Validation, Verification and Governance for AI Agents. 
 
 ## Install
 
 ```bash
-pip install ceron
+pip install cerone
 ```
 
 ## Access (Beta)
@@ -24,9 +24,9 @@ API access is currently managed through early access:
 
 ```python
 import os
-from ceron import CeronClient
+from cerone import CeroneClient
 
-client = CeronClient(api_key=os.getenv("CERON_API_KEY"))
+client = CeroneClient(api_key=os.getenv("CERONE_API_KEY"))
 
 agent = client.create_agent(
     purpose="Approved operational workflow",
@@ -44,7 +44,7 @@ print(response.result)
 
 ## What the SDK Provides
 
-- Authenticated client access to Ceron services
+- Authenticated client access to Cerone services
 - Agent registration and identity-bound operations
 - Sync and async validation calls
 - Batch validation support

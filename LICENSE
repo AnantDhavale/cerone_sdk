@@ -1,13 +1,13 @@
-Ceron SDK Commercial License
+Cerone SDK Commercial License
 Version 1.0
 
 Copyright (c) 2026 Anant Dhavale and Homer Semantics. All rights reserved.
 
-This license governs use of the Ceron Software Development Kit ("SDK") and any associated source code, binaries, examples, and documentation made available by Homer Semantics ("Licensor").
+This license governs use of the Cerone Software Development Kit ("SDK") and any associated source code, binaries, examples, and documentation made available by Homer Semantics ("Licensor").
 
 1. Grant of License
 Subject to compliance with this License, Licensor grants you a limited, non-exclusive, non-transferable, revocable license to:
-(a) use the SDK solely to develop, test, and operate integrations with Licensor's Ceron services;
+(a) use the SDK solely to develop, test, and operate integrations with Licensor's Cerone services;
 (b) reproduce and distribute the SDK only as embedded within your application in object form, where end users cannot reasonably extract the SDK as a standalone developer tool.
 
 2. Ownership and Intellectual Property
@@ -18,14 +18,14 @@ You may not, and may not permit others to:
 (a) sell, sublicense, rent, lease, or provide the SDK as a standalone product or service;
 (b) modify, create derivative works of, or redistribute the SDK source code, except with Licensor's prior written permission;
 (c) remove, alter, or obscure any copyright, trademark, or proprietary notices;
-(d) use the SDK or Ceron services to build, train, benchmark, validate, or improve any competing product or service, including competitive analysis intended for publication or commercialization;
+(d) use the SDK or Cerone services to build, train, benchmark, validate, or improve any competing product or service, including competitive analysis intended for publication or commercialization;
 (e) reverse engineer, decompile, disassemble, translate, decode, or otherwise attempt to derive source code, underlying ideas, algorithms, model behavior, scoring logic, thresholds, prompts, or non-public APIs, except to the limited extent such restriction is expressly prohibited by applicable law;
-(f) attempt model extraction, prompt extraction, dataset extraction, or systematic output analysis intended to replicate Ceron functionality;
+(f) attempt model extraction, prompt extraction, dataset extraction, or systematic output analysis intended to replicate Cerone functionality;
 (g) attempt to discover or reconstruct non-public service internals, infrastructure, security controls, or backend implementation details through unauthorized means, including probing, scraping, fuzzing, or penetration activity without prior written authorization from Licensor;
 (h) circumvent or attempt to circumvent usage limits, authentication controls, billing controls, access restrictions, anti-abuse controls, or monitoring controls.
 
 4. Service Terms and Quotas
-Use of the Ceron service APIs is subject to separate service terms, usage quotas, and pricing published by Licensor. Licensor may suspend or terminate API access for abuse, non-payment, security risk, or license breach. Current introductory quota is described in the Terms of Service and may change from time to time.
+Use of the Cerone service APIs is subject to separate service terms, usage quotas, and pricing published by Licensor. Licensor may suspend or terminate API access for abuse, non-payment, security risk, or license breach. Current introductory quota is described in the Terms of Service and may change from time to time.
 
 5. Confidentiality
 Any non-public technical information, performance information, keys, or implementation details disclosed by Licensor are confidential and must not be disclosed to third parties.

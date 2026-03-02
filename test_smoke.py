@@ -1,21 +1,21 @@
-from ceron_sdk import AgentWrapper, CeronClient, CeronResponse, ValidationResult
+from cerone_sdk import AgentWrapper, CeroneClient, CeroneResponse, ValidationResult
 
 
 def test_cache_key_includes_parameters():
-    client = CeronClient(api_key="sk_test", enable_cache=True)
+    client = CeroneClient(api_key="sk_test", enable_cache=True)
     key_a = client._cache_key("agt_1", "trade_execute", {"symbol": "BTC", "qty": 1})
     key_b = client._cache_key("agt_1", "trade_execute", {"symbol": "BTC", "qty": 2})
     assert key_a != key_b
 
 
 def test_retry_policy_defaults_to_idempotent_only():
-    client = CeronClient(api_key="sk_test")
+    client = CeroneClient(api_key="sk_test")
     assert client._can_retry("GET") is True
     assert client._can_retry("POST") is False
 
 
 def test_validate_cache_respects_parameters():
-    client = CeronClient(api_key="sk_test", enable_cache=True)
+    client = CeroneClient(api_key="sk_test", enable_cache=True)
     calls = {"count": 0}
 
     def fake_request(method, endpoint, **kwargs):
@@ -41,10 +41,10 @@ def test_validate_cache_respects_parameters():
 
 
 def test_agent_wrapper_executes_when_approved():
-    client = CeronClient(api_key="sk_test")
+    client = CeroneClient(api_key="sk_test")
 
     def fake_validate(agent_id, action, parameters):
-        return CeronResponse(
+        return CeroneResponse(
             result=ValidationResult.APPROVED,
             semantic_alignment=0.95,
             trust_score=0.99,
