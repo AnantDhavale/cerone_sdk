@@ -1,0 +1,51 @@
+Ceron SDK Commercial License
+Version 1.0
+
+Copyright (c) 2026 Homer Semantics. All rights reserved.
+
+This license governs use of the Ceron Software Development Kit ("SDK") and any associated source code, binaries, examples, and documentation made available by Homer Semantics ("Licensor").
+
+1. Grant of License
+Subject to compliance with this License, Licensor grants you a limited, non-exclusive, non-transferable, revocable license to:
+(a) use the SDK solely to develop, test, and operate integrations with Licensor's Ceron services;
+(b) reproduce and distribute the SDK only as embedded within your application in object form, where end users cannot reasonably extract the SDK as a standalone developer tool.
+
+2. Ownership and Intellectual Property
+The SDK is licensed, not sold. Licensor retains all right, title, and interest in and to the SDK, including all intellectual property rights, trade secrets, and derivative works.
+
+3. Restrictions
+You may not, and may not permit others to:
+(a) sell, sublicense, rent, lease, or provide the SDK as a standalone product or service;
+(b) modify, create derivative works of, or redistribute the SDK source code, except with Licensor's prior written permission;
+(c) remove, alter, or obscure any copyright, trademark, or proprietary notices;
+(d) use the SDK or Ceron services to build, train, benchmark, validate, or improve any competing product or service, including competitive analysis intended for publication or commercialization;
+(e) reverse engineer, decompile, disassemble, translate, decode, or otherwise attempt to derive source code, underlying ideas, algorithms, model behavior, scoring logic, thresholds, prompts, or non-public APIs, except to the limited extent such restriction is expressly prohibited by applicable law;
+(f) attempt model extraction, prompt extraction, dataset extraction, or systematic output analysis intended to replicate Ceron functionality;
+(g) attempt to discover or reconstruct non-public service internals, infrastructure, security controls, or backend implementation details through unauthorized means, including probing, scraping, fuzzing, or penetration activity without prior written authorization from Licensor;
+(h) circumvent or attempt to circumvent usage limits, authentication controls, billing controls, access restrictions, anti-abuse controls, or monitoring controls.
+
+4. Service Terms and Quotas
+Use of the Ceron service APIs is subject to separate service terms, usage quotas, and pricing published by Licensor. Licensor may suspend or terminate API access for abuse, non-payment, security risk, or license breach.
+
+5. Confidentiality
+Any non-public technical information, performance information, keys, or implementation details disclosed by Licensor are confidential and must not be disclosed to third parties.
+
+6. Feedback
+If you provide feedback, suggestions, or improvement ideas, you grant Licensor a perpetual, irrevocable, worldwide, royalty-free right to use them without restriction or compensation.
+
+7. Disclaimer
+THE SDK IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+8. Limitation of Liability
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, LICENSOR WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR REVENUE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. LICENSOR'S AGGREGATE LIABILITY FOR ALL CLAIMS RELATING TO THE SDK WILL NOT EXCEED USD $100.
+
+9. Termination
+This License is effective until terminated. It terminates automatically if you breach any term. Upon termination, you must cease use of the SDK and destroy all copies in your possession or control.
+
+10. Governing Law
+This License is governed by the laws of Western Australia, without regard to conflict of laws principles. Any dispute shall be subject to the exclusive jurisdiction of the courts of Western Australia.
+
+11. Contact
+Licensing requests: info@homersemantics.com
+
+By using the SDK, you agree to this License.

@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include TERMS_OF_SERVICE.md
+include ceron_sdk.py
+recursive-include ceron *.py
+recursive-include tests *.py
+prune private
+global-exclude __pycache__
+global-exclude *.py[cod]
