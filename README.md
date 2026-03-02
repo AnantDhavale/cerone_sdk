@@ -1,9 +1,11 @@
-# Ceron - Zero Trust Security and Production governance for AI Agents : Python SDK
+# Ceron (Beta) - Zero Trust Security and Production governance for AI Agents : Python SDK 
 
 
 Ceron gives every AI agents a verifiable identity, enforces runtime policy checks on high-risk actions, and continuously adjusts control posture based on observed behavior. It helps teams keep autonomous systems inside approved boundaries in production.  Result: safer agent operations with clear governance, accountability, and enforcement.
 
-Ceron helps teams enforce policy controls on agent actions and maintain operational accountability in production environments. Thus, it provides Zero Trust Security Validation, Verification and Governance for AI Agents.
+Ceron helps teams enforce policy controls on agent actions and maintain operational accountability in production environments. Thus, it provides Zero Trust Security Validation, Verification and Governance for AI Agents. 
+
+Ceron SDK is currently in early-access beta for selected users.
 
 https://aztp.homersemantics.com/
 
@@ -12,7 +14,7 @@ https://aztp.homersemantics.com/
 ```bash
 pip install ceron
 Access
-API access is currently managed through early access:
+API access (Beta) is currently managed through early access:
 •	Request: https://aztp.homersemantics.com/
 •	Receive approval and API credentials
 •	Review terms in TERMS_OF_SERVICE.md
