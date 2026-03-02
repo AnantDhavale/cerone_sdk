@@ -2,6 +2,11 @@
 
 Zero Trust Security for AI Agents
 
+Ceron gives every AI agent a verifiable identity, enforces runtime policy checks on high-risk actions, and continuously adjusts control posture based on observed behavior.  
+It helps teams keep autonomous systems inside approved boundaries in production.  
+Result: safer agent operations with clear governance, accountability, and enforcement.
+
+
 [![PyPI version](https://badge.fury.io/py/ceron.svg)](https://badge.fury.io/py/ceron)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](#license)
@@ -57,44 +62,15 @@ else:
 
 ## Core Concepts
 
-### 1. Agent Identity
-Every agent gets a cryptographic certificate with its declared purpose:
+### 1. Verified Agent Identity
+Each agent is issued a verifiable identity tied to its declared role and policy scope. This allows Ceron to attribute actions to the correct agent and enforce policy consistently across environments.
 
-```python
-agent = client.create_agent(
-    purpose="Autonomous trading agent for cryptocurrency markets",
-    capabilities=["market_read", "trade_execute"]
-)
-# Returns: AgentCertificate with agent_id and Ed25519 signature
-```
+### 2. Runtime Policy Validation
+Before sensitive operations execute, Ceron evaluates requested actions against the agent’s declared intent, permissions, and active policy controls. Actions that do not meet policy are blocked or flagged according to your enforcement settings.
 
-### 2. Semantic Validation
-Actions are validated against the agent's purpose using semantic embeddings:
+### 3. Continuous Trust and Control
+Ceron continuously monitors behavior over time and updates enforcement posture based on observed risk signals. Teams can apply graduated controls (allow, monitor, restrict, revoke) to keep production agents within approved operating boundaries.
 
-```python
-# This will be APPROVED (aligned with trading purpose)
-result = client.validate(
-    agent_id=agent.agent_id,
-    action="trade_execute",
-    parameters={"symbol": "BTC/USD", "side": "buy"}
-)
-
-# This will be REJECTED (not aligned with trading purpose)
-result = client.validate(
-    agent_id=agent.agent_id,
-    action="send_email_marketing",
-    parameters={"recipients": "all_customers"}
-)
-```
-
-### 3. Adaptive Trust Scoring
-Trust increases with aligned behavior, decreases with drift:
-
-```python
-trust = client.get_trust_score(agent.agent_id)
-print(f"Trust: {trust['current_score']:.2f}")
-print(f"Tier: {trust['tier']}")  # Trusted | Monitored | Restricted | Revoked
-```
 
 ## Usage Examples
 
@@ -412,7 +388,7 @@ except ValidationError as e:
 - Async validation: Process multiple in parallel
 
 ### Rate Limits
-- 100 requests/minute per API key
+- 100 100 validations in first 5 days
 - Use batch validation for high-throughput
 - Enable caching for repeated actions
 
@@ -510,14 +486,6 @@ Ceron SDK Commercial License - see LICENSE file for details
 Use of Ceron APIs is also governed by TERMS_OF_SERVICE.md.
 
 Free trial: up to 100 validations in the first 5 days. See TERMS_OF_SERVICE.md.
-
-## Free Tier and Trial Usage
-
-The Ceron free tier includes up to 100 validations during the first 5 days from account activation ("Trial Period").
-
-After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Ceron’s discretion unless otherwise stated in a signed commercial agreement.
-
-Unused trial validations do not roll over. Ceron may modify, suspend, or discontinue free-tier/trial offerings at any time.
 
 
 ## Changelog
