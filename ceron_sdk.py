@@ -20,11 +20,13 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TypeVar, cast
 
 import requests
+
 try:
     import aiohttp
+
     _AIOHTTP_AVAILABLE = True
     _AIOHTTP_CLIENT_ERROR = aiohttp.ClientError
 except ModuleNotFoundError:
@@ -41,6 +43,7 @@ __author__ = "Homer Semantics"
 EARLY_ACCESS_URL = "https://aztp.homersemantics.com/"
 
 logger = logging.getLogger(__name__)
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 class ValidationResult(Enum):
@@ -93,6 +96,14 @@ class RateLimitError(CeronException):
     """Raised when rate limit is exceeded."""
 
 
+class _ClientRequestError(ValidationError):
+    """Raised for non-retryable 4xx request errors."""
+
+
+class _ServerError(ValidationError):
+    """Raised for retryable 5xx server errors."""
+
+
 class CeronClient:
     """Ceron API client for validating AI agent actions."""
 
@@ -115,6 +126,7 @@ class CeronClient:
             base_url: API endpoint (default: production).
             timeout: Request timeout in seconds.
             max_retries: Number of retry attempts for eligible requests.
+                Total attempts = 1 + max_retries.
             enable_cache: Enable local caching of high-trust validations.
             retry_non_idempotent: Retry POST/PUT/PATCH/DELETE on transport errors.
                 Defaults to False to avoid duplicate side effects.
@@ -122,7 +134,7 @@ class CeronClient:
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
-        self.max_retries = max_retries
+        self.max_retries = max(0, max_retries)
         self.enable_cache = enable_cache
         self.retry_non_idempotent = retry_non_idempotent
         self._cache = {} if enable_cache else None
@@ -164,7 +176,7 @@ class CeronClient:
             if cached and time.time() - cached["timestamp"] < 300:
                 if cached["trust_score"] > 0.95:
                     logger.debug("Cache hit for %s", cache_key)
-                    return cached["response"]
+                    return cast(CeronResponse, cached["response"])
 
         start_time = time.time()
 
@@ -285,6 +297,8 @@ class CeronClient:
 
     @staticmethod
     def _raise_for_status(status_code: int, body_text: str) -> None:
+        if 200 <= status_code < 300:
+            return
         if status_code == 401:
             raise AuthenticationError(
                 f"Invalid or missing API key. Request early access at {EARLY_ACCESS_URL}"
@@ -295,24 +309,26 @@ class CeronClient:
                 f"{EARLY_ACCESS_URL}"
             )
         if status_code >= 500:
-            raise ValidationError(f"Server error: {status_code}")
-        if status_code != 200:
-            raise ValidationError(f"Request failed: {status_code} - {body_text}")
+            raise _ServerError(f"Server error: {status_code}")
+        raise _ClientRequestError(f"Request failed: {status_code} - {body_text}")
 
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Dict[str, Any]:
         """Internal method for API requests with bounded retries."""
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
-        attempts = self.max_retries if can_retry else 1
+        attempts = (self.max_retries + 1) if can_retry else 1
 
         for attempt in range(attempts):
             try:
                 response = self._session.request(method, url, timeout=self.timeout, **kwargs)
                 self._raise_for_status(response.status_code, response.text)
-                return response.json()
-            except (AuthenticationError, RateLimitError):
+                try:
+                    return response.json()
+                except ValueError as exc:
+                    raise ValidationError("Invalid JSON response from server") from exc
+            except (AuthenticationError, RateLimitError, _ClientRequestError):
                 raise
-            except ValidationError:
+            except _ServerError:
                 if attempt < attempts - 1:
                     wait_time = 2**attempt
                     logger.warning("Request failed with server error, retrying in %ss...", wait_time)
@@ -346,7 +362,7 @@ class CeronClient:
         """Async API request helper with bounded retries."""
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
-        attempts = self.max_retries if can_retry else 1
+        attempts = (self.max_retries + 1) if can_retry else 1
 
         for attempt in range(attempts):
             try:
@@ -354,10 +370,13 @@ class CeronClient:
                 async with session.request(method, url, **kwargs) as response:
                     body_text = await response.text()
                     self._raise_for_status(response.status, body_text)
-                    return json.loads(body_text)
-            except (AuthenticationError, RateLimitError):
+                    try:
+                        return json.loads(body_text)
+                    except json.JSONDecodeError as exc:
+                        raise ValidationError("Invalid JSON response from server") from exc
+            except (AuthenticationError, RateLimitError, _ClientRequestError):
                 raise
-            except ValidationError:
+            except _ServerError:
                 if attempt < attempts - 1:
                     wait_time = 2**attempt
                     logger.warning("Async request failed with server error, retrying in %ss...", wait_time)
@@ -385,6 +404,17 @@ class CeronClient:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+        if self._async_session is not None and not self._async_session.closed:
+            logger.warning(
+                "Async session is still open. Use 'async with CeronClient(...)' or await client.aclose()."
+            )
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.aclose()
+        self.close()
 
 
 class AgentWrapper:
@@ -394,11 +424,11 @@ class AgentWrapper:
         self.client = ceron_client
         self.agent_id = agent_id
 
-    def validate_action(self, func):
+    def validate_action(self, func: F) -> F:
         """Decorator that validates function calls through Ceron."""
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any):
             action = func.__name__
             parameters = {"args": args, "kwargs": kwargs}
 
@@ -411,7 +441,7 @@ class AgentWrapper:
             logger.warning("Action '%s' blocked: %s", action, result.violations)
             raise PermissionError(f"Ceron blocked action: {', '.join(result.violations)}")
 
-        return wrapper
+        return cast(F, wrapper)
 
 
 __all__ = [
