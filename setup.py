@@ -1,4 +1,4 @@
-"""Setup configuration for Ceron Python SDK."""
+"""Setup configuration for Cerone Python SDK."""
 
 import os
 from pathlib import Path
@@ -10,7 +10,7 @@ README = ROOT / "README.md"
 os.chdir(ROOT)
 
 setup(
-    name="ceron",
+    name="cerone",
     version="1.0.0",
     author="Anant Dhavale for Homer Semantics",
     author_email="info@homersemantics.com",
@@ -18,14 +18,14 @@ setup(
     license="Proprietary - see LICENSE file",
     long_description=README.read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
-    url="https://github.com/homer-semantics/ceron-python",
+    url="https://github.com/homer-semantics/cerone-python",
     project_urls={
         "Documentation": "https://aztp.homersemantics.com/",
-        "Bug Tracker": "https://github.com/homer-semantics/ceron-python/issues",
+        "Bug Tracker": "https://github.com/homer-semantics/cerone-python/issues",
         "Homepage": "https://aztp.homersemantics.com/",
     },
-    packages=find_packages(include=["ceron", "ceron.*"]),
-    py_modules=["ceron_sdk"],
+    packages=find_packages(include=["cerone", "cerone.*"]),
+    py_modules=["cerone_sdk"],
     include_package_data=True,
     classifiers=[
         "Development Status :: 4 - Beta",

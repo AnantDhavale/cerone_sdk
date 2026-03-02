@@ -1,12 +1,12 @@
-"""Ceron Python SDK public package interface."""
+"""Cerone Python SDK public package interface."""
 
-from ceron_sdk import (
+from cerone_sdk import (
     AgentCertificate,
     AgentWrapper,
     AuthenticationError,
-    CeronClient,
-    CeronException,
-    CeronResponse,
+    CeroneClient,
+    CeroneException,
+    CeroneResponse,
     RateLimitError,
     ValidationError,
     ValidationResult,
@@ -15,12 +15,12 @@ from ceron_sdk import (
 )
 
 __all__ = [
-    "CeronClient",
+    "CeroneClient",
     "AgentWrapper",
-    "CeronResponse",
+    "CeroneResponse",
     "AgentCertificate",
     "ValidationResult",
-    "CeronException",
+    "CeroneException",
     "AuthenticationError",
     "ValidationError",
     "RateLimitError",

@@ -1,8 +1,8 @@
-# Ceron API Terms of Service
+# Cerone API Terms of Service
 
 Effective date: March 2, 2026
 
-These Terms of Service ("Terms") govern access to and use of the Ceron APIs, SDK, website, and related services (collectively, the "Services") provided by Homer Semantics ("we", "us", "our"). By creating an account, using an API key, installing the SDK, or otherwise using the Services, you agree to these Terms.
+These Terms of Service ("Terms") govern access to and use of the Cerone APIs, SDK, website, and related services (collectively, the "Services") provided by Homer Semantics ("we", "us", "our"). By creating an account, using an API key, installing the SDK, or otherwise using the Services, you agree to these Terms.
 
 ## 1. Eligibility and Account Responsibilities
 
@@ -10,7 +10,7 @@ You must be legally able to enter into these Terms. You are responsible for all 
 
 ## 2. License and Service Access
 
-Your use of the SDK is subject to the Ceron SDK Commercial License in the `LICENSE` file. We grant you a limited, revocable, non-exclusive right to access and use the Services in accordance with these Terms, your plan limits, and applicable law.
+Your use of the SDK is subject to the Cerone SDK Commercial License in the `LICENSE` file. We grant you a limited, revocable, non-exclusive right to access and use the Services in accordance with these Terms, your plan limits, and applicable law.
 
 ## 3. Acceptable Use and Restrictions
 
@@ -18,7 +18,7 @@ You may not, and may not permit others to:
 
 1. Reverse engineer, decompile, disassemble, decode, or otherwise attempt to derive non-public source code, algorithms, models, scoring logic, prompts, or internal APIs, except to the limited extent prohibited by applicable law.
 2. Use the Services or SDK to build, benchmark, validate, or improve a competing product or service, including competitive publications intended for commercialization.
-3. Attempt model, prompt, or dataset extraction, or systematic output analysis intended to replicate Ceron functionality.
+3. Attempt model, prompt, or dataset extraction, or systematic output analysis intended to replicate Cerone functionality.
 4. Circumvent plan limits, usage quotas, authentication, billing, anti-abuse controls, monitoring controls, or any access restrictions.
 5. Probe, scrape, fuzz, or penetration-test the Services without our prior written authorization.
 6. Use the Services in a way that violates law, infringes third-party rights, or materially degrades service reliability or security.
@@ -29,11 +29,11 @@ Free and paid plans, quotas, and pricing are described on our website or order f
 
 ## Free Tier and Trial Usage
 
-The Ceron free tier includes up to 100 validations during the first 5 days from account activation ("Trial Period").
+The Cerone free tier includes up to 100 validations during the first 5 days from account activation ("Trial Period").
 
-After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Ceron’s discretion unless otherwise stated in a signed commercial agreement.
+After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Cerone’s discretion unless otherwise stated in a signed commercial agreement.
 
-Unused trial validations do not roll over. Ceron may modify, suspend, or discontinue free-tier/trial offerings at any time.
+Unused trial validations do not roll over. Cerone may modify, suspend, or discontinue free-tier/trial offerings at any time.
 
 
 ## 5. Data Handling
