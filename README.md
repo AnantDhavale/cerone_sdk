@@ -1,27 +1,28 @@
-# Ceron (Beta) - Zero Trust Security and Production governance for AI Agents : Python SDK 
 
+# Ceron Python SDK (Beta)
 
-Ceron gives every AI agents a verifiable identity, enforces runtime policy checks on high-risk actions, and continuously adjusts control posture based on observed behavior. It helps teams keep autonomous systems inside approved boundaries in production.  Result: safer agent operations with clear governance, accountability, and enforcement.
+Zero Trust security and production governance for AI agents.
 
-Ceron helps teams enforce policy controls on agent actions and maintain operational accountability in production environments. Thus, it provides Zero Trust Security Validation, Verification and Governance for AI Agents. 
-
-Ceron SDK is currently in early-access beta for selected users.
-
-https://aztp.homersemantics.com/
+Ceron helps teams enforce policy controls on agent actions and maintain operational accountability in production environments.  
+The SDK is currently in early-access beta for selected users.  Thus, it provides Zero Trust Security Validation, Verification and Governance for AI Agents. 
 
 ## Install
 
-**Beta Notice**
-> This SDK is in early-access beta. APIs and limits may change.
-
 ```bash
 pip install ceron
-Access
-API access (Beta) is currently managed through early access:
-•	Request: https://aztp.homersemantics.com/
-•	Receive approval and API credentials
-•	Review terms in TERMS_OF_SERVICE.md
-Quick Start
+```
+
+## Access (Beta)
+
+API access is currently managed through early access:
+
+- Request access: https://aztp.homersemantics.com/
+- Receive approval and API credentials
+- Review terms in `TERMS_OF_SERVICE.md`
+
+## Quick Start
+
+```python
 import os
 from ceron import CeronClient
 
@@ -38,27 +39,34 @@ response = client.validate(
     parameters={"key": "value"},
 )
 
-print(response.status)
+print(response.result)
+```
 
-What the SDK Provides
-•	Authenticated client access to Ceron services
-•	Agent registration and identity-bound operations
-•	Sync/async validation calls
-•	Batch validation support
-•	Governance-oriented telemetry surfaces
+## What the SDK Provides
 
-**Usage Terms**
-Usage limits and commercial terms are defined in TERMS_OF_SERVICE.md.
+- Authenticated client access to Ceron services
+- Agent registration and identity-bound operations
+- Sync and async validation calls
+- Batch validation support
+- Governance-oriented telemetry surfaces
+
+## Usage Terms
+
+Usage limits and commercial terms are defined in `TERMS_OF_SERVICE.md`.
 
 Current free trial: up to 100 validations in the first 5 days.
 
-License
-Proprietary commercial license. See LICENSE.
+## License
 
-Contact
+Proprietary commercial license. See `LICENSE`.
+
+## Contact
+
 info@homersemantics.com
+```
 
-<img width="472" height="647" alt="image" src="https://github.com/user-attachments/assets/016a2b84-286c-41b8-98eb-aef335cada5d" />
-
-
-
+Notes:
+1. Close the install code block before “Access”.
+2. Use markdown headings for sections (`##`).
+3. Use markdown bullets (`-`) not dot bullets pasted from docs.
+4. Use `response.result` (matches your SDK dataclass).
