@@ -27,7 +27,13 @@ You may not, and may not permit others to:
 
 Free and paid plans, quotas, and pricing are described on our website or order form and may be updated from time to time. Exceeding usage limits may result in throttling, overage charges, suspension, or requirement to upgrade. Fees are non-refundable except where required by law or expressly stated.
 
-Free Tier / Trial: Includes up to 100 validations during the first 30 days from account activation. After this period, continued use requires an active paid plan or is subject to reduced limits at Licensor’s discretion.
+## Free Tier and Trial Usage
+
+The Ceron free tier includes up to 100 validations during the first 5 days from account activation ("Trial Period").
+
+After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Ceron’s discretion unless otherwise stated in a signed commercial agreement.
+
+Unused trial validations do not roll over. Ceron may modify, suspend, or discontinue free-tier/trial offerings at any time.
 
 
 ## 5. Data Handling
