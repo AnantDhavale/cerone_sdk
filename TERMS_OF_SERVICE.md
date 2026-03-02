@@ -27,6 +27,9 @@ You may not, and may not permit others to:
 
 Free and paid plans, quotas, and pricing are described on our website or order form and may be updated from time to time. Exceeding usage limits may result in throttling, overage charges, suspension, or requirement to upgrade. Fees are non-refundable except where required by law or expressly stated.
 
+Free Tier / Trial: Includes up to 100 validations during the first 30 days from account activation. After this period, continued use requires an active paid plan or is subject to reduced limits at Licensor’s discretion.
+
+
 ## 5. Data Handling
 
 You are responsible for ensuring you have rights to submit data to the Services and for configuring your own redaction and data governance controls. We may process submitted data to provide, secure, and improve the Services consistent with our privacy commitments and legal obligations.
