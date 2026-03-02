@@ -11,6 +11,9 @@ https://aztp.homersemantics.com/
 
 ## Install
 
+**Beta Notice**
+> This SDK is in early-access beta. APIs and limits may change.
+
 ```bash
 pip install ceron
 Access
@@ -44,7 +47,7 @@ What the SDK Provides
 •	Batch validation support
 •	Governance-oriented telemetry surfaces
 
-Usage Terms
+**Usage Terms**
 Usage limits and commercial terms are defined in TERMS_OF_SERVICE.md.
 
 Current free trial: up to 100 validations in the first 5 days.
