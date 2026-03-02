@@ -509,6 +509,17 @@ Ceron SDK Commercial License - see LICENSE file for details
 
 Use of Ceron APIs is also governed by TERMS_OF_SERVICE.md.
 
+Free trial: up to 100 validations in the first 5 days. See TERMS_OF_SERVICE.md.
+
+## Free Tier and Trial Usage
+
+The Ceron free tier includes up to 100 validations during the first 5 days from account activation ("Trial Period").
+
+After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Ceron’s discretion unless otherwise stated in a signed commercial agreement.
+
+Unused trial validations do not roll over. Ceron may modify, suspend, or discontinue free-tier/trial offerings at any time.
+
+
 ## Changelog
 
 ### v1.0.0 (2026-02-28)
