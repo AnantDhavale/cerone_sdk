@@ -2,11 +2,12 @@
 
 Zero Trust Security and Production governance for AI Agents
 
-Ceron gives every AI agent a verifiable identity, enforces runtime policy checks on high-risk actions, and continuously adjusts control posture based on observed behavior.  
-It helps teams keep autonomous systems inside approved boundaries in production.  
-Result: safer agent operations with clear governance, accountability, and enforcement.
+Ceron gives every AI agents a verifiable identity, enforces runtime policy checks on high-risk actions, and continuously adjusts control posture based on observed behavior.  
+It helps teams keep autonomous systems inside approved boundaries in production.  Result: safer agent operations with clear governance, accountability, and enforcement.
 
-Ceron helps teams enforce policy controls on agent actions and maintain operational accountability in production environments.
+Ceron helps teams enforce policy controls on agent actions and maintain operational accountability in production environments. Thus Ceron provides Zero Trust Security Validation, Verification and Governance for AI Agents.
+
+https://aztp.homersemantics.com/
 
 ## Install
 
