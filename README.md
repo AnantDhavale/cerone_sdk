@@ -71,66 +71,6 @@ Before sensitive operations execute, Ceron evaluates requested actions against t
 ### 3. Continuous Trust and Control
 Ceron continuously monitors behavior over time and updates enforcement posture based on observed risk signals. Teams can apply graduated controls (allow, monitor, restrict, revoke) to keep production agents within approved operating boundaries.
 
-
-## Usage Examples
-
-
-
-## Usage Examples
-
-### Example 1: Basic Validation (Sync)
-```python
-from ceron import CeronClient, ValidationResult
-
-client = CeronClient(api_key="sk_...")
-
-agent = client.create_agent(
-    purpose="Handle approved support operations",
-    capabilities=["read_records", "send_notifications"],
-)
-
-result = client.validate(
-    agent_id=agent.agent_id,
-    action="read_records",
-    parameters={"resource": "customer_profile"},
-)
-
-if result.result == ValidationResult.APPROVED:
-    run_action()
-else:
-    handle_block(result.violations)
-
-### **Example 2: Async Validation**
-
-import asyncio
-from ceron import CeronClient
-
-client = CeronClient(api_key="sk_...")
-
-async def check():
-    return await client.validate_async(
-        agent_id="agt_123",
-        action="send_notification",
-        parameters={"channel": "email"},
-    )
-
-result = asyncio.run(check())
-print(result.result)
-
-### **Example 3: Batch Validation**
-
-from ceron import CeronClient
-
-client = CeronClient(api_key="sk_...")
-
-results = client.validate_batch([
-    {"agent_id": "agt_123", "action": "read_records", "parameters": {}},
-    {"agent_id": "agt_123", "action": "update_record", "parameters": {"id": "42"}},
-])
-
-for r in results:
-    print(r.action, r.result)
-
 ## API Reference
 
 ### CeronClient
