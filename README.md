@@ -65,8 +65,4 @@ Proprietary commercial license. See `LICENSE`.
 info@homersemantics.com
 ```
 
-Notes:
-1. Close the install code block before “Access”.
-2. Use markdown headings for sections (`##`).
-3. Use markdown bullets (`-`) not dot bullets pasted from docs.
 4. Use `response.result` (matches your SDK dataclass).
