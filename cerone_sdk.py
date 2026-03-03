@@ -17,6 +17,7 @@ import hashlib
 import json
 import logging
 import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
@@ -38,26 +39,28 @@ except ModuleNotFoundError:
 
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
-__version__ = "1.0.0"
+# F23: version set to 0.2.0 (product is early-access beta, not stable 1.x)
+__version__ = "0.2.0"
 __author__ = "Homer Semantics"
 EARLY_ACCESS_URL = "https://aztp.homersemantics.com/"
 
 logger = logging.getLogger(__name__)
 F = TypeVar("F", bound=Callable[..., Any])
 
+# F18: maximum entries in the in-process validation cache (prevents unbounded growth)
+_CACHE_MAX_SIZE = 1000
+
 
 class ValidationResult(Enum):
     """Validation result enum."""
-
     APPROVED = "approved"
     REJECTED = "rejected"
-    ERROR = "error"
+    ERROR    = "error"
 
 
 @dataclass
 class CeroneResponse:
     """Response from Cerone validation."""
-
     result: ValidationResult
     semantic_alignment: float
     trust_score: float
@@ -71,7 +74,6 @@ class CeroneResponse:
 @dataclass
 class AgentCertificate:
     """Agent identity certificate."""
-
     agent_id: str
     purpose: str
     capabilities: List[str]
@@ -126,10 +128,10 @@ class CeroneClient:
             base_url: API endpoint (default: production).
             timeout: Request timeout in seconds.
             max_retries: Number of retry attempts for eligible requests.
-                Total attempts = 1 + max_retries.
             enable_cache: Enable local caching of high-trust validations.
-            retry_non_idempotent: Retry POST/PUT/PATCH/DELETE on transport errors.
-                Defaults to False to avoid duplicate side effects.
+                          Cache is bounded to 1,000 entries (LRU eviction).
+            retry_non_idempotent: Retry POST/PUT/PATCH/DELETE on transport
+                errors. Defaults to False to avoid duplicate side effects.
         """
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
@@ -137,7 +139,10 @@ class CeroneClient:
         self.max_retries = max(0, max_retries)
         self.enable_cache = enable_cache
         self.retry_non_idempotent = retry_non_idempotent
-        self._cache = {} if enable_cache else None
+
+        # F18: bounded LRU cache — plain dict grows unboundedly in long-running
+        # processes; OrderedDict with a size cap gives O(1) eviction.
+        self._cache: Optional[OrderedDict] = OrderedDict() if enable_cache else None
 
         self._session = requests.Session()
         self._session.headers.update(
@@ -150,13 +155,17 @@ class CeroneClient:
 
         self._async_session: Optional[Any] = None
 
-    def create_agent(self, purpose: str, capabilities: Optional[List[str]] = None) -> AgentCertificate:
-        """Create a new agent with cryptographic identity."""
-        payload = {
-            "purpose": purpose,
-            "capabilities": capabilities or [],
-        }
+    # ------------------------------------------------------------------
+    # Certificate / agent management
+    # ------------------------------------------------------------------
 
+    def create_agent(
+        self,
+        purpose: str,
+        capabilities: Optional[List[str]] = None,
+    ) -> AgentCertificate:
+        """Create a new agent with cryptographic identity."""
+        payload = {"purpose": purpose, "capabilities": capabilities or []}
         response = self._request("POST", "/v1/certificates", json=payload)
 
         return AgentCertificate(
@@ -168,7 +177,16 @@ class CeroneClient:
             created_at=response["created_at"],
         )
 
-    def validate(self, agent_id: str, action: str, parameters: Dict[str, Any]) -> CeroneResponse:
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    def validate(
+        self,
+        agent_id: str,
+        action: str,
+        parameters: Dict[str, Any],
+    ) -> CeroneResponse:
         """Validate an agent action in real-time."""
         if self._cache is not None:
             cache_key = self._cache_key(agent_id, action, parameters)
@@ -176,18 +194,13 @@ class CeroneClient:
             if cached and time.time() - cached["timestamp"] < 300:
                 if cached["trust_score"] > 0.95:
                     logger.debug("Cache hit for %s", cache_key)
+                    # Move to end (most recently used)
+                    self._cache.move_to_end(cache_key)
                     return cast(CeroneResponse, cached["response"])
 
         start_time = time.time()
-
-        payload = {
-            "agent_id": agent_id,
-            "action": action,
-            "parameters": parameters,
-        }
-
+        payload = {"agent_id": agent_id, "action": action, "parameters": parameters}
         response = self._request("POST", "/v1/validate", json=payload)
-
         latency_ms = int((time.time() - start_time) * 1000)
 
         cerone_response = CeroneResponse(
@@ -201,32 +214,40 @@ class CeroneClient:
             latency_ms=latency_ms,
         )
 
-        if self._cache is not None and cerone_response.result == ValidationResult.APPROVED:
-            if cerone_response.trust_score > 0.95:
-                cache_key = self._cache_key(agent_id, action, parameters)
-                self._cache[cache_key] = {
-                    "response": cerone_response,
-                    "trust_score": cerone_response.trust_score,
-                    "timestamp": time.time(),
-                }
+        if (
+            self._cache is not None
+            and cerone_response.result == ValidationResult.APPROVED
+            and cerone_response.trust_score > 0.95
+        ):
+            cache_key = self._cache_key(agent_id, action, parameters)
+            self._cache[cache_key] = {
+                "response": cerone_response,
+                "trust_score": cerone_response.trust_score,
+                "timestamp": time.time(),
+            }
+            self._cache.move_to_end(cache_key)
+            # F18: evict oldest entries if cache is full
+            while len(self._cache) > _CACHE_MAX_SIZE:
+                self._cache.popitem(last=False)
 
         return cerone_response
 
-    async def validate_async(self, agent_id: str, action: str, parameters: Dict[str, Any]) -> CeroneResponse:
+    async def validate_async(
+        self,
+        agent_id: str,
+        action: str,
+        parameters: Dict[str, Any],
+    ) -> CeroneResponse:
         """Async version of validate() for high-throughput scenarios."""
         if not _AIOHTTP_AVAILABLE:
-            raise ValidationError("aiohttp is required for async methods. Install with: pip install aiohttp")
+            raise ValidationError(
+                "aiohttp is required for async methods. "
+                "Install with: pip install aiohttp"
+            )
 
         start_time = time.time()
-
-        payload = {
-            "agent_id": agent_id,
-            "action": action,
-            "parameters": parameters,
-        }
-
+        payload = {"agent_id": agent_id, "action": action, "parameters": parameters}
         data = await self._request_async("POST", "/v1/validate", json=payload)
-
         latency_ms = int((time.time() - start_time) * 1000)
 
         return CeroneResponse(
@@ -241,32 +262,67 @@ class CeroneClient:
         )
 
     def validate_batch(self, validations: List[Dict[str, Any]]) -> List[CeroneResponse]:
-        """Validate multiple actions in a single request."""
-        response = self._request("POST", "/v1/validate/batch", json={"validations": validations})
+        """
+        Validate multiple actions in a single request.
+
+        Each dict in ``validations`` must contain:
+            agent_id   (str)
+            action     (dict with ``tool`` and ``parameters`` keys)
+        """
+        # F3: build properly shaped ValidationRequest objects for the backend
+        requests_payload = []
+        for v in validations:
+            requests_payload.append({
+                "agent_id": v["agent_id"],
+                "action": v["action"],   # must be {"tool": str, "parameters": dict}
+            })
+
+        response = self._request(
+            "POST", "/v1/validate/batch", json={"validations": requests_payload}
+        )
 
         return [
             CeroneResponse(
-                result=ValidationResult(r["result"]),
-                semantic_alignment=r["semantic_alignment"],
-                trust_score=r["trust_score"],
+                result=ValidationResult(r.get("result", "error")),
+                semantic_alignment=r.get("semantic_alignment", 0.0),
+                trust_score=r.get("trust_score", 0.0),
                 violations=r.get("violations", []),
-                agent_id=r["agent_id"],
-                action=r["action"],
-                timestamp=r["timestamp"],
+                agent_id=r.get("agent_id", ""),
+                action=r.get("action", {}).get("tool", "") if isinstance(r.get("action"), dict) else str(r.get("action", "")),
+                timestamp=r.get("timestamp", ""),
                 latency_ms=r.get("latency_ms", 0),
             )
             for r in response["results"]
         ]
 
+    # ------------------------------------------------------------------
+    # Trust / audit
+    # ------------------------------------------------------------------
+
     def get_trust_score(self, agent_id: str) -> Dict[str, Any]:
         """Get current trust score and history for an agent."""
         return self._request("GET", f"/v1/trust/{agent_id}")
 
-    def get_audit_log(self, agent_id: str, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """Retrieve audit log for an agent."""
+    def get_audit_log(
+        self,
+        agent_id: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve audit log events for an agent.
+
+        Returns a list of event dicts.  Each dict contains at minimum:
+            timestamp, agent_id, action, result, change_reason
+        """
+        # F4: backend returns {"events": [...], ...} — read the correct key
         params = {"limit": limit, "offset": offset}
         response = self._request("GET", f"/v1/audit/agent/{agent_id}", params=params)
         return response["events"]
+
+    # ------------------------------------------------------------------
+    # Health / lifecycle
+    # ------------------------------------------------------------------
 
     def health_check(self) -> Dict[str, Any]:
         """Check API health status."""
@@ -277,23 +333,25 @@ class CeroneClient:
             return {"status": "error", "message": str(exc)}
 
     def close(self) -> None:
-        """Close underlying synchronous HTTP session."""
+        """Close the underlying synchronous HTTP session."""
         self._session.close()
 
     async def aclose(self) -> None:
-        """Close underlying asynchronous HTTP session if initialized."""
+        """Close the underlying asynchronous HTTP session if initialized."""
         if self._async_session is not None and not self._async_session.closed:
             await self._async_session.close()
 
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
     def _cache_key(self, agent_id: str, action: str, parameters: Dict[str, Any]) -> str:
-        """Create a stable cache key including parameters."""
         serialized = json.dumps(parameters, sort_keys=True, default=str, separators=(",", ":"))
         digest = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
         return f"{agent_id}:{action}:{digest}"
 
     def _can_retry(self, method: str) -> bool:
-        method = method.upper()
-        return method in self._IDEMPOTENT_METHODS or self.retry_non_idempotent
+        return method.upper() in self._IDEMPOTENT_METHODS or self.retry_non_idempotent
 
     @staticmethod
     def _raise_for_status(status_code: int, body_text: str) -> None:
@@ -305,15 +363,14 @@ class CeroneClient:
             )
         if status_code == 429:
             raise RateLimitError(
-                "Rate limit exceeded. If you need higher limits, request access/upgrade via "
-                f"{EARLY_ACCESS_URL}"
+                f"Rate limit exceeded. Upgrade your plan at {EARLY_ACCESS_URL}"
             )
         if status_code >= 500:
             raise _ServerError(f"Server error: {status_code}")
         raise _ClientRequestError(f"Request failed: {status_code} - {body_text}")
 
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Dict[str, Any]:
-        """Internal method for API requests with bounded retries."""
+        """Internal request with bounded retries."""
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
         attempts = (self.max_retries + 1) if can_retry else 1
@@ -330,19 +387,19 @@ class CeroneClient:
                 raise
             except _ServerError:
                 if attempt < attempts - 1:
-                    wait_time = 2**attempt
-                    logger.warning("Request failed with server error, retrying in %ss...", wait_time)
-                    time.sleep(wait_time)
+                    wait = 2 ** attempt
+                    logger.warning("Server error, retrying in %ss…", wait)
+                    time.sleep(wait)
                     continue
                 raise
             except requests.exceptions.Timeout:
                 if attempt < attempts - 1:
-                    logger.warning("Request timeout, retrying...")
+                    logger.warning("Request timeout, retrying…")
                     continue
                 raise ValidationError("Request timeout")
             except requests.exceptions.RequestException as exc:
                 if attempt < attempts - 1:
-                    logger.warning("Request failed: %s, retrying...", exc)
+                    logger.warning("Request failed: %s, retrying…", exc)
                     continue
                 raise ValidationError(f"Request failed: {exc}")
 
@@ -350,7 +407,10 @@ class CeroneClient:
 
     async def _get_async_session(self) -> Any:
         if not _AIOHTTP_AVAILABLE:
-            raise ValidationError("aiohttp is required for async methods. Install with: pip install aiohttp")
+            raise ValidationError(
+                "aiohttp is required for async methods. "
+                "Install with: pip install aiohttp"
+            )
         if self._async_session is None or self._async_session.closed:
             self._async_session = aiohttp.ClientSession(
                 headers=dict(self._session.headers),
@@ -359,7 +419,7 @@ class CeroneClient:
         return self._async_session
 
     async def _request_async(self, method: str, endpoint: str, **kwargs: Any) -> Dict[str, Any]:
-        """Async API request helper with bounded retries."""
+        """Async request helper with bounded retries."""
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
         attempts = (self.max_retries + 1) if can_retry else 1
@@ -378,26 +438,27 @@ class CeroneClient:
                 raise
             except _ServerError:
                 if attempt < attempts - 1:
-                    wait_time = 2**attempt
-                    logger.warning("Async request failed with server error, retrying in %ss...", wait_time)
-                    await self._async_sleep(wait_time)
+                    wait = 2 ** attempt
+                    logger.warning("Async server error, retrying in %ss…", wait)
+                    await asyncio.sleep(wait)
                     continue
                 raise
             except asyncio.TimeoutError:
                 if attempt < attempts - 1:
-                    logger.warning("Async request timeout, retrying...")
+                    logger.warning("Async timeout, retrying…")
                     continue
                 raise ValidationError("Request timeout")
             except _AIOHTTP_CLIENT_ERROR as exc:
                 if attempt < attempts - 1:
-                    logger.warning("Async request failed: %s, retrying...", exc)
+                    logger.warning("Async request failed: %s, retrying…", exc)
                     continue
                 raise ValidationError(f"Request failed: {exc}")
 
         raise ValidationError("Max retries exceeded")
 
-    async def _async_sleep(self, seconds: int) -> None:
-        await asyncio.sleep(seconds)
+    # ------------------------------------------------------------------
+    # Context manager support
+    # ------------------------------------------------------------------
 
     def __enter__(self):
         return self
@@ -406,7 +467,8 @@ class CeroneClient:
         self.close()
         if self._async_session is not None and not self._async_session.closed:
             logger.warning(
-                "Async session is still open. Use 'async with CeroneClient(...)' or await client.aclose()."
+                "Async session still open. "
+                "Use 'async with CeroneClient(...)' or await client.aclose()."
             )
 
     async def __aenter__(self):
@@ -418,24 +480,32 @@ class CeroneClient:
 
 
 class AgentWrapper:
-    """Wrapper class that automatically validates all agent actions."""
+    """Wrapper that automatically validates all agent actions via a decorator."""
 
     def __init__(self, cerone_client: CeroneClient, agent_id: str):
         self.client = cerone_client
         self.agent_id = agent_id
 
     def validate_action(self, func: F) -> F:
-        """Decorator that validates function calls through Cerone."""
+        """Decorator that validates a function call through Cerone before executing it."""
 
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any):
             action = func.__name__
             parameters = {"args": args, "kwargs": kwargs}
 
-            result = self.client.validate(agent_id=self.agent_id, action=action, parameters=parameters)
+            result = self.client.validate(
+                agent_id=self.agent_id,
+                action=action,
+                parameters=parameters,
+            )
 
             if result.result == ValidationResult.APPROVED:
-                logger.info("Action '%s' approved (alignment: %.2f)", action, result.semantic_alignment)
+                logger.info(
+                    "Action '%s' approved (alignment: %.2f)",
+                    action,
+                    result.semantic_alignment,
+                )
                 return func(*args, **kwargs)
 
             logger.warning("Action '%s' blocked: %s", action, result.violations)
