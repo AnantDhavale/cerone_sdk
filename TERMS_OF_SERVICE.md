@@ -71,4 +71,5 @@ We may update these Terms from time to time. Updated Terms become effective when
 
 ## 13. Contact
 
-Questions / Support: info@homersemantics.com
+Questions / Support: info@homersemantics.com anantdhavale@gmail.com
+copyright © Anant Dhavale 2026
