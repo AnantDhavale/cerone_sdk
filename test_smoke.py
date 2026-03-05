@@ -1,4 +1,4 @@
-from cerone_sdk import AgentWrapper, CeroneClient, CeroneResponse, ValidationResult
+from cerone import AgentWrapper, CeroneClient, CeroneResponse, ValidationResult
 
 
 def test_cache_key_includes_parameters():
