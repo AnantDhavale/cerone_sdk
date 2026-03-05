@@ -3,8 +3,15 @@
 
 Zero Trust security and production governance for AI agents.
 
-Cerone helps teams enforce policy controls on agent actions and maintain operational accountability in production environments.  
-The SDK is currently in early-access beta for selected users.  Thus, it provides Zero Trust Security Validation, Verification and Governance for AI Agents. 
+AI agents are being deployed into production systems that handle real decisions, real data, and real consequences — yet most teams have no 
+runtime control over what those agents actually do. Cerone fixes that.
+
+Cerone enforces cryptographic identity, semantic intent validation, and continuous trust scoring on every agent action — ensuring agents only 
+do what they were authorized to do, and nothing else. Deploying AI agents in production without this layer of protection is an unacceptable 
+operational and security risk.
+
+The SDK is currently in early-access beta for selected teams building production AI systems that require accountability, auditability, and 
+control.
 
 ## Install
 
@@ -54,7 +61,7 @@ print(response.result)
 
 Usage limits and commercial terms are defined in `TERMS_OF_SERVICE.md`.
 
-Current free trial: up to 100 validations in the first 5 days.
+Current free trial: up to 25 validations in the first 5 days.
 
 ## License
 
@@ -64,5 +71,3 @@ Proprietary commercial license. See `LICENSE`.
 
 info@homersemantics.com
 ```
-
-4. Use `response.result` (matches your SDK dataclass).
