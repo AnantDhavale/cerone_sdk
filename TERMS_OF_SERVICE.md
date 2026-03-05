@@ -1,9 +1,11 @@
 # Cerone API Terms of Service
 
-Effective date: March 2, 2026
+Effective date: March 5, 2026
 
 These Terms of Service ("Terms") govern access to and use of the Cerone APIs, SDK, website, and related services (collectively, the "Services") provided by Homer Semantics ("we", "us", "our"). By creating an account, using an API key, installing the SDK, or otherwise using the Services, you agree to these Terms.
+## Beta Service Notice
 
+The Services are currently offered as a beta version. Beta services may contain bugs, errors, or instabilities and are provided for evaluation and early-access purposes only. Features, APIs, quotas, and pricing are subject to change without notice during the beta period. Homer Semantics and Anant Dhavale make no commitment to maintain beta features in future releases. By using the Services during beta, you acknowledge and accept these limitations and agree not to rely on the Services for mission-critical or production workloads without appropriate independent safeguards.
 ## 1. Eligibility and Account Responsibilities
 
 You must be legally able to enter into these Terms. You are responsible for all activity under your account and API keys. You must keep credentials secure and notify us promptly of unauthorized use.
@@ -29,16 +31,15 @@ Free and paid plans, quotas, and pricing are described on our website or order f
 
 ## Free Tier and Trial Usage
 
-The Cerone free tier includes up to 100 validations during the first 5 days from account activation ("Trial Period").
+The Cerone free tier includes up to 25 validations during the first 5 days from account activation ("Trial Period").
 
-After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Cerone’s discretion unless otherwise stated in a signed commercial agreement.
+After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Cerone's discretion unless otherwise stated in a signed commercial agreement.
 
 Unused trial validations do not roll over. Cerone may modify, suspend, or discontinue free-tier/trial offerings at any time.
 
-
 ## 5. Data Handling
 
-You are responsible for ensuring you have rights to submit data to the Services and for configuring your own redaction and data governance controls. We may process submitted data to provide, secure, and improve the Services consistent with our privacy commitments and legal obligations.
+You are responsible for ensuring you have rights to submit data to the Services and for configuring your own redaction and data governance controls. We may process submitted data to provide, secure, and improve the Services consistent with our privacy commitments and legal obligations, including India's Digital Personal Data Protection Act (DPDPA 2023).
 
 ## 6. Confidentiality
 
@@ -58,11 +59,11 @@ THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY K
 
 ## 10. Limitation of Liability
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, HOMER SEMANTICS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR REVENUE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. OUR AGGREGATE LIABILITY FOR ALL CLAIMS ARISING OUT OF OR RELATED TO THE SERVICES WILL NOT EXCEED THE GREATER OF (A) USD $100 OR (B) FEES PAID BY YOU TO US IN THE THREE (3) MONTHS PRECEDING THE EVENT GIVING RISE TO LIABILITY.
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, HOMER SEMANTICS and ANANT DHAVALE WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR REVENUE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. OUR AGGREGATE LIABILITY FOR ALL CLAIMS ARISING OUT OF OR RELATED TO THE SERVICES WILL NOT EXCEED THE GREATER OF (A) USD $100 OR (B) FEES PAID BY YOU TO US IN THE THREE (3) MONTHS PRECEDING THE EVENT GIVING RISE TO LIABILITY.
 
 ## 11. Governing Law and Venue
 
-These Terms are governed by the laws of Western Australia, without regard to conflict-of-laws principles. Disputes will be subject to the exclusive jurisdiction of the courts of Western Australia.
+These Terms are governed by the laws of India, without regard to conflict-of-laws principles. Any dispute arising out of or relating to these Terms shall be subject to the exclusive jurisdiction of the courts of Pune, Maharashtra, India. Notwithstanding the foregoing, we may elect, at our sole discretion, to bring any dispute in the courts of the jurisdiction where you are domiciled or incorporated.
 
 ## 12. Changes to Terms
 
@@ -70,6 +71,4 @@ We may update these Terms from time to time. Updated Terms become effective when
 
 ## 13. Contact
 
-Questions: info@homersemantics.com
-Support: support@homersemantics.com
-
+Questions / Support: info@homersemantics.com
