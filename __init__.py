@@ -1,6 +1,6 @@
 """Cerone Python SDK public package interface."""
 
-from cerone_sdk import (
+from .cerone_sdk import (
     AgentCertificate,
     AgentWrapper,
     AuthenticationError,
