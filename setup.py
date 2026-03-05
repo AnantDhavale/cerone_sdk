@@ -10,7 +10,7 @@ README = ROOT / "README.md"
 os.chdir(ROOT)
 
 setup(
-    name="cerone",
+    name="cerone_SDK",
     version="0.2.0",
     author="Anant Dhavale for Homer Semantics",
     author_email="info@homersemantics.com",
