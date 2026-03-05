@@ -24,8 +24,7 @@ setup(
         "Bug Tracker": "https://github.com/AnantDhavale/cerone/issues",
         "Homepage": "https://aztp.homersemantics.com/",
     },
-    packages=find_packages(include=["cerone", "cerone.*"]),
-    py_modules=["cerone_sdk"],
+    packages=["cerone_sdk"],
     include_package_data=True,
     classifiers=[
         "Development Status :: 4 - Beta",
