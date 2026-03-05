@@ -10,7 +10,7 @@ README = ROOT / "README.md"
 os.chdir(ROOT)
 
 setup(
-    name="cerone_sdk",
+    name="cerone",
     version="0.2.0",
     author="Anant Dhavale for Homer Semantics",
     author_email="info@homersemantics.com",
@@ -24,7 +24,7 @@ setup(
         "Bug Tracker": "https://github.com/AnantDhavale/cerone/issues",
         "Homepage": "https://aztp.homersemantics.com/",
     },
-    packages=["cerone_sdk"],
+    packages=["cerone"],
     include_package_data=True,
     classifiers=[
         "Development Status :: 4 - Beta",
