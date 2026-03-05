@@ -68,6 +68,6 @@ Current free trial: up to 25 validations in the first 5 days.
 Proprietary commercial license. See `LICENSE`.
 
 ## Contact
-
+anantdhavale@gmail.com
 info@homersemantics.com
 ```
