@@ -1,7 +1,8 @@
 
 # Cerone Python SDK (Beta)
 
-Zero Trust security and production governance for AI agents.
+Zero Trust security and production governance for AI agents. 
+Cryptographic identity and run-time validation for AI agents in production.
 
 AI agents are being deployed into production systems that handle real decisions, real data, and real consequences — yet most teams have no 
 runtime control over what those agents actually do. Cerone fixes that.
@@ -30,23 +31,28 @@ API access is currently managed through early access:
 ## Quick Start
 
 ```python
-import os
 from cerone import CeroneClient
+import os
 
 client = CeroneClient(api_key=os.getenv("CERONE_API_KEY"))
 
+# Create agent
 agent = client.create_agent(
-    purpose="Approved operational workflow",
-    capabilities=["approved_capability"],
+    purpose="Email classifier",
+    capabilities=["read_email", "move_email", "send_reply"]
 )
 
+# Validate action before executing
 response = client.validate(
     agent_id=agent.agent_id,
-    action="approved_action",
-    parameters={"key": "value"},
+    action="move_email",
+    parameters={"email_id": "123", "folder": "spam"}
 )
 
-print(response.result)
+if response.result.value == "approved":
+    mailbox.move_email("123", "spam")
+else:
+    print(f"Action rejected: {response.violations}")
 ```
 
 ## What the SDK Provides
