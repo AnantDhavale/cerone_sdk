@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v3
     
@@ -29,4 +29,3 @@ jobs:
       with:
         username: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
-
