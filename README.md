@@ -4,10 +4,10 @@
 Zero Trust security and production governance for AI agents. 
 Cryptographic identity and run-time validation for AI agents in production.
 
-AI agents are being deployed into production systems that handle real decisions, real data, and real consequences — yet most teams have no 
+AI agents are being deployed into production systems that handle real decisions, real data, and real consequences, yet most teams have no 
 runtime control over what those agents actually do. Cerone fixes that.
 
-Cerone enforces cryptographic identity, semantic intent validation, and continuous trust scoring on every agent action — ensuring agents only 
+Cerone enforces cryptographic identity, semantic intent validation, and continuous trust scoring on every agent action; ensuring agents only 
 do what they were authorized to do, and nothing else. Deploying AI agents in production without this layer of protection is an unacceptable 
 operational and security risk.
 
