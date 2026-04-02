@@ -168,13 +168,30 @@ class CeroneClient:
         payload = {"purpose": purpose, "capabilities": capabilities or []}
         response = self._request("POST", "/v1/certificates", json=payload)
 
+        # AZTP canonical response:
+        # {
+        #   "certificate": {"agent_id", "purpose", "capabilities", "signature", "issued_at", ...},
+        #   "trust_score": ...
+        # }
+        # Keep backwards compatibility with older flat responses.
+        cert_data = response.get("certificate") if isinstance(response, dict) else None
+        if not isinstance(cert_data, dict):
+            cert_data = response
+
+        agent_id = cert_data.get("agent_id") or response.get("agent_id")
+        if not agent_id:
+            raise ValidationError("Missing agent_id in create_agent response")
+
         return AgentCertificate(
-            agent_id=response["agent_id"],
-            purpose=purpose,
-            capabilities=capabilities or [],
-            trust_score=response["trust_score"],
-            signature=response["signature"],
-            created_at=response["created_at"],
+            agent_id=agent_id,
+            purpose=cert_data.get("purpose", purpose),
+            capabilities=cert_data.get("capabilities", capabilities or []),
+            trust_score=response.get("trust_score", cert_data.get("trust_score", 0.0)),
+            signature=cert_data.get("signature", response.get("signature", "")),
+            created_at=cert_data.get(
+                "issued_at",
+                response.get("created_at", response.get("issued_at", "")),
+            ),
         )
 
     # ------------------------------------------------------------------
@@ -184,12 +201,16 @@ class CeroneClient:
     def validate(
         self,
         agent_id: str,
-        action: str,
-        parameters: Dict[str, Any],
+        action: Any,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> CeroneResponse:
         """Validate an agent action in real-time."""
+        action_payload = self._normalize_action_payload(action, parameters)
+        tool_name = action_payload["tool"]
+        tool_parameters = action_payload["parameters"]
+
         if self._cache is not None:
-            cache_key = self._cache_key(agent_id, action, parameters)
+            cache_key = self._cache_key(agent_id, tool_name, tool_parameters)
             cached = self._cache.get(cache_key)
             if cached and time.time() - cached["timestamp"] < 300:
                 if cached["trust_score"] > 0.95:
@@ -199,18 +220,19 @@ class CeroneClient:
                     return cast(CeroneResponse, cached["response"])
 
         start_time = time.time()
-        payload = {"agent_id": agent_id, "action": action, "parameters": parameters}
+        payload = {"agent_id": agent_id, "action": action_payload}
         response = self._request("POST", "/v1/validate", json=payload)
         latency_ms = int((time.time() - start_time) * 1000)
 
+        result_value = str(response.get("result", "error")).lower()
         cerone_response = CeroneResponse(
-            result=ValidationResult(response["result"]),
-            semantic_alignment=response["semantic_alignment"],
-            trust_score=response["trust_score"],
+            result=ValidationResult(result_value),
+            semantic_alignment=float(response.get("semantic_alignment", 0.0) or 0.0),
+            trust_score=float(response.get("trust_score", 0.0) or 0.0),
             violations=response.get("violations", []),
             agent_id=agent_id,
-            action=action,
-            timestamp=response["timestamp"],
+            action=tool_name,
+            timestamp=str(response.get("timestamp", "")),
             latency_ms=latency_ms,
         )
 
@@ -219,7 +241,7 @@ class CeroneClient:
             and cerone_response.result == ValidationResult.APPROVED
             and cerone_response.trust_score > 0.95
         ):
-            cache_key = self._cache_key(agent_id, action, parameters)
+            cache_key = self._cache_key(agent_id, tool_name, tool_parameters)
             self._cache[cache_key] = {
                 "response": cerone_response,
                 "trust_score": cerone_response.trust_score,
@@ -235,8 +257,8 @@ class CeroneClient:
     async def validate_async(
         self,
         agent_id: str,
-        action: str,
-        parameters: Dict[str, Any],
+        action: Any,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> CeroneResponse:
         """Async version of validate() for high-throughput scenarios."""
         if not _AIOHTTP_AVAILABLE:
@@ -246,18 +268,20 @@ class CeroneClient:
             )
 
         start_time = time.time()
-        payload = {"agent_id": agent_id, "action": action, "parameters": parameters}
+        action_payload = self._normalize_action_payload(action, parameters)
+        payload = {"agent_id": agent_id, "action": action_payload}
         data = await self._request_async("POST", "/v1/validate", json=payload)
         latency_ms = int((time.time() - start_time) * 1000)
 
+        result_value = str(data.get("result", "error")).lower()
         return CeroneResponse(
-            result=ValidationResult(data["result"]),
-            semantic_alignment=data["semantic_alignment"],
-            trust_score=data["trust_score"],
+            result=ValidationResult(result_value),
+            semantic_alignment=float(data.get("semantic_alignment", 0.0) or 0.0),
+            trust_score=float(data.get("trust_score", 0.0) or 0.0),
             violations=data.get("violations", []),
             agent_id=agent_id,
-            action=action,
-            timestamp=data["timestamp"],
+            action=action_payload["tool"],
+            timestamp=str(data.get("timestamp", "")),
             latency_ms=latency_ms,
         )
 
@@ -349,6 +373,35 @@ class CeroneClient:
         serialized = json.dumps(parameters, sort_keys=True, default=str, separators=(",", ":"))
         digest = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
         return f"{agent_id}:{action}:{digest}"
+
+    def _normalize_action_payload(
+        self,
+        action: Any,
+        parameters: Optional[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Normalize validation payload into AZTP contract:
+            {"tool": <str>, "parameters": <dict>}
+
+        Supports legacy SDK call shape:
+            validate(agent_id=..., action="tool_name", parameters={...})
+        """
+        if isinstance(action, dict):
+            tool = action.get("tool")
+            params = action.get("parameters", parameters or {})
+            if not isinstance(tool, str) or not tool:
+                raise ValidationError("Action dict must include a non-empty 'tool' field")
+            if not isinstance(params, dict):
+                raise ValidationError("Action parameters must be a dictionary")
+            return {"tool": tool, "parameters": params}
+
+        if not isinstance(action, str) or not action:
+            raise ValidationError("Action must be a non-empty string or an action dict")
+
+        params = parameters or {}
+        if not isinstance(params, dict):
+            raise ValidationError("Parameters must be a dictionary")
+        return {"tool": action, "parameters": params}
 
     def _can_retry(self, method: str) -> bool:
         return method.upper() in self._IDEMPOTENT_METHODS or self.retry_non_idempotent
