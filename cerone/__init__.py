@@ -55,6 +55,7 @@ class ValidationResult(Enum):
     """Validation result enum."""
     APPROVED = "approved"
     REJECTED = "rejected"
+    FLAGGED  = "flagged"
     ERROR    = "error"
 
 
@@ -226,7 +227,7 @@ class CeroneClient:
 
         result_value = str(response.get("result", "error")).lower()
         cerone_response = CeroneResponse(
-            result=ValidationResult(result_value),
+            result=self._parse_validation_result(result_value),
             semantic_alignment=float(response.get("semantic_alignment", 0.0) or 0.0),
             trust_score=float(response.get("trust_score", 0.0) or 0.0),
             violations=response.get("violations", []),
@@ -275,7 +276,7 @@ class CeroneClient:
 
         result_value = str(data.get("result", "error")).lower()
         return CeroneResponse(
-            result=ValidationResult(result_value),
+            result=self._parse_validation_result(result_value),
             semantic_alignment=float(data.get("semantic_alignment", 0.0) or 0.0),
             trust_score=float(data.get("trust_score", 0.0) or 0.0),
             violations=data.get("violations", []),
@@ -307,7 +308,7 @@ class CeroneClient:
 
         return [
             CeroneResponse(
-                result=ValidationResult(r.get("result", "error")),
+                result=self._parse_validation_result(r.get("result", "error")),
                 semantic_alignment=r.get("semantic_alignment", 0.0),
                 trust_score=r.get("trust_score", 0.0),
                 violations=r.get("violations", []),
@@ -326,6 +327,21 @@ class CeroneClient:
     def get_trust_score(self, agent_id: str) -> Dict[str, Any]:
         """Get current trust score and history for an agent."""
         return self._request("GET", f"/v1/trust/{agent_id}")
+
+    @staticmethod
+    def _parse_validation_result(value: Any) -> ValidationResult:
+        """
+        Parse backend result safely.
+
+        Supports newly introduced states (e.g. "flagged") and falls back to
+        ERROR for forward-compatibility instead of raising ValueError.
+        """
+        raw = str(value).lower()
+        try:
+            return ValidationResult(raw)
+        except ValueError:
+            logger.warning("unknown_validation_result value=%s, defaulting=error", raw)
+            return ValidationResult.ERROR
 
     def get_audit_log(
         self,

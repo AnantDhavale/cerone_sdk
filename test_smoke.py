@@ -64,3 +64,13 @@ def test_agent_wrapper_executes_when_approved():
 
     assert add_one(2) == 3
     assert add_one.__name__ == "add_one"
+
+
+def test_parse_validation_result_supports_flagged():
+    client = CeroneClient(api_key="sk_test")
+    assert client._parse_validation_result("flagged") == ValidationResult.FLAGGED
+
+
+def test_parse_validation_result_unknown_defaults_to_error():
+    client = CeroneClient(api_key="sk_test")
+    assert client._parse_validation_result("unknown_new_state") == ValidationResult.ERROR
