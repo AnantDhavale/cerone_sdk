@@ -73,6 +73,13 @@ Current free trial: up to 25 validations in the first 5 days.
 
 Proprietary commercial license. See `LICENSE`.
 
+## Liability Disclaimer
+
+By downloading or using this SDK, you acknowledge that you use it at your own risk.
+The SDK is provided "AS IS", without warranties, and Homer Semantics is not liable
+for losses, damages, or claims arising from use or inability to use the SDK,
+subject to applicable law and the full terms in `LICENSE`.
+
 ## Contact
 anantdhavale@gmail.com
 info@homersemantics.com
