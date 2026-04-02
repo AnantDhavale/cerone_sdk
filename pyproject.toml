@@ -43,8 +43,8 @@ dev = [
 
 [project.urls]
 Homepage    = "https://aztp.homersemantics.com"
-Repository  = "https://github.com/AnantDhavale/cerone"
-"Bug Tracker" = "https://github.com/AnantDhavale/cerone/issues"
+Repository  = "https://github.com/AnantDhavale/cerone_sdk"
+"Bug Tracker" = "https://github.com/AnantDhavale/cerone_sdk/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
