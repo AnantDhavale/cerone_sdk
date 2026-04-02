@@ -18,10 +18,10 @@ setup(
     license="Proprietary - see LICENSE file",
     long_description=README.read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
-    url="https://github.com/AnantDhavale/cerone",
+    url="https://github.com/AnantDhavale/cerone_sdk",
     project_urls={
         "Documentation": "https://aztp.homersemantics.com/",
-        "Bug Tracker": "https://github.com/AnantDhavale/cerone/issues",
+        "Bug Tracker": "https://github.com/AnantDhavale/cerone_sdk/issues",
         "Homepage": "https://aztp.homersemantics.com/",
     },
     packages=["cerone"],

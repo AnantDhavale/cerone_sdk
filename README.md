@@ -76,4 +76,3 @@ Proprietary commercial license. See `LICENSE`.
 ## Contact
 anantdhavale@gmail.com
 info@homersemantics.com
-```

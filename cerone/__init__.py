@@ -39,8 +39,8 @@ except ModuleNotFoundError:
 
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
-# F23: version set to 0.2.0 (product is early-access beta, not stable 1.x)
-__version__ = "0.2.0"
+# Keep runtime version aligned with package metadata.
+__version__ = "1.0.0"
 __author__ = "Homer Semantics"
 EARLY_ACCESS_URL = "https://aztp.homersemantics.com/"
 
