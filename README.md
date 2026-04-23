@@ -24,7 +24,8 @@ pip install cerone
 
 API access is currently managed through early access:
 
-- Request access: https://aztp.homersemantics.com/
+- Request access: https://www.homersemantics.com/ai-agent-governance-and-oauth
+- Reach out to Anant at anantdhavale@gmail.com or info@homersemantics.com
 - Receive approval and API credentials
 - Review terms in `TERMS_OF_SERVICE.md`
 
@@ -74,5 +75,5 @@ Current free trial: up to 25 validations in the first 5 days.
 Proprietary commercial license. See `LICENSE`.
 
 ## Contact
-anantdhavale@gmail.com
-info@homersemantics.com
+- Reach out to Anant at anantdhavale@gmail.com or info@homersemantics.com
+- If you are using Cerone, we would highly appreciate any feedback.

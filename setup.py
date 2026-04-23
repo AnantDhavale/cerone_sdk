@@ -11,7 +11,7 @@ os.chdir(ROOT)
 
 setup(
     name="cerone",
-    version="1.0.0",
+    version="1.0.1",
     author="Anant Dhavale for Homer Semantics",
     author_email="info@homersemantics.com",
     description="Zero Trust Security for AI Agents",
@@ -20,9 +20,9 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/AnantDhavale/cerone_sdk",
     project_urls={
-        "Documentation": "https://aztp.homersemantics.com/",
+        "Documentation": "https://www.homersemantics.com/ai-agent-governance-and-oauth",
         "Bug Tracker": "https://github.com/AnantDhavale/cerone_sdk/issues",
-        "Homepage": "https://aztp.homersemantics.com/",
+        "Homepage": "https://www.homersemantics.com/ai-agent-governance-and-oauth",
     },
     packages=["cerone"],
     include_package_data=True,

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cerone"
-version = "1.0.0"
+version = "1.0.1"
 description = "Zero Trust Security for AI Agents"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -42,7 +42,7 @@ dev = [
 ]
 
 [project.urls]
-Homepage    = "https://aztp.homersemantics.com"
+Homepage    = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 Repository  = "https://github.com/AnantDhavale/cerone_sdk"
 "Bug Tracker" = "https://github.com/AnantDhavale/cerone_sdk/issues"
 
