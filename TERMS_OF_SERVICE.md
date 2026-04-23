@@ -1,8 +1,8 @@
-# Cerone API Terms of Service
+# Agent Governance API Terms of Service
 
 Effective date: March 5, 2026
 
-These Terms of Service ("Terms") govern access to and use of the Cerone APIs, SDK, website, and related services (collectively, the "Services") provided by Homer Semantics ("we", "us", "our"). By creating an account, using an API key, installing the SDK, or otherwise using the Services, you agree to these Terms.
+These Terms of Service ("Terms") govern access to and use of the Agent Governance APIs, SDK, website, and related services (collectively, the "Services") provided by Homer Semantics ("we", "us", "our"). By creating an account, using an API key, installing the SDK, or otherwise using the Services, you agree to these Terms.
 ## Beta Service Notice
 
 The Services are currently offered as a beta version. Beta services may contain bugs, errors, or instabilities and are provided for evaluation and early-access purposes only. Features, APIs, quotas, and pricing are subject to change without notice during the beta period. Homer Semantics and Anant Dhavale make no commitment to maintain beta features in future releases. By using the Services during beta, you acknowledge and accept these limitations and agree not to rely on the Services for mission-critical or production workloads without appropriate independent safeguards.
@@ -12,7 +12,7 @@ You must be legally able to enter into these Terms. You are responsible for all 
 
 ## 2. License and Service Access
 
-Your use of the SDK is subject to the Cerone SDK Commercial License in the `LICENSE` file. We grant you a limited, revocable, non-exclusive right to access and use the Services in accordance with these Terms, your plan limits, and applicable law.
+Your use of the SDK is subject to the Agent Governance SDK Commercial License in the `LICENSE` file. We grant you a limited, revocable, non-exclusive right to access and use the Services in accordance with these Terms, your plan limits, and applicable law.
 
 ## 3. Acceptable Use and Restrictions
 
@@ -20,7 +20,7 @@ You may not, and may not permit others to:
 
 1. Reverse engineer, decompile, disassemble, decode, or otherwise attempt to derive non-public source code, algorithms, models, scoring logic, prompts, or internal APIs, except to the limited extent prohibited by applicable law.
 2. Use the Services or SDK to build, benchmark, validate, or improve a competing product or service, including competitive publications intended for commercialization.
-3. Attempt model, prompt, or dataset extraction, or systematic output analysis intended to replicate Cerone functionality.
+3. Attempt model, prompt, or dataset extraction, or systematic output analysis intended to replicate Agent Governance functionality.
 4. Circumvent plan limits, usage quotas, authentication, billing, anti-abuse controls, monitoring controls, or any access restrictions.
 5. Probe, scrape, fuzz, or penetration-test the Services without our prior written authorization.
 6. Use the Services in a way that violates law, infringes third-party rights, or materially degrades service reliability or security.
@@ -31,11 +31,11 @@ Free and paid plans, quotas, and pricing are described on our website or order f
 
 ## Free Tier and Trial Usage
 
-The Cerone free tier includes up to 25 validations during the first 5 days from account activation ("Trial Period").
+The Agent Governance free tier includes up to 25 validations during the first 5 days from account activation ("Trial Period").
 
-After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Cerone's discretion unless otherwise stated in a signed commercial agreement.
+After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Agent Governance's discretion unless otherwise stated in a signed commercial agreement.
 
-Unused trial validations do not roll over. Cerone may modify, suspend, or discontinue free-tier/trial offerings at any time.
+Unused trial validations do not roll over. Agent Governance may modify, suspend, or discontinue free-tier/trial offerings at any time.
 
 ## 5. Data Handling
 

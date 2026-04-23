@@ -1,13 +1,13 @@
 
-# Cerone Python SDK (Beta)
+# Agent Governance Python SDK (Beta)
 
 Zero Trust security and production governance for AI agents. 
 Cryptographic identity and run-time validation for AI agents in production.
 
 AI agents are being deployed into production systems that handle real decisions, real data, and real consequences, yet most teams have no 
-runtime control over what those agents actually do. Cerone fixes that.
+runtime control over what those agents actually do. Agent Governance fixes that.
 
-Cerone enforces cryptographic identity, semantic intent validation, and continuous trust scoring on every agent action; ensuring agents only 
+Agent Governance enforces cryptographic identity, semantic intent validation, and continuous trust scoring on every agent action; ensuring agents only 
 do what they were authorized to do, and nothing else. Deploying AI agents in production without this layer of protection is an unacceptable 
 operational and security risk.
 
@@ -17,7 +17,7 @@ control.
 ## Install
 
 ```bash
-pip install cerone
+pip install agent-governance
 ```
 
 ## Access (Beta)
@@ -32,10 +32,10 @@ API access is currently managed through early access:
 ## Quick Start
 
 ```python
-from cerone import CeroneClient
+from agent_governance import AgentGovernanceClient
 import os
 
-client = CeroneClient(api_key=os.getenv("CERONE_API_KEY"))
+client = AgentGovernanceClient(api_key=os.getenv("AGENT_GOVERNANCE_API_KEY"))
 
 # Create agent
 agent = client.create_agent(
@@ -58,11 +58,19 @@ else:
 
 ## What the SDK Provides
 
-- Authenticated client access to Cerone services
+- Authenticated client access to Agent Governance services
 - Agent registration and identity-bound operations
 - Sync and async validation calls
 - Batch validation support
 - Governance-oriented telemetry surfaces
+
+## Compatibility
+
+Existing `cerone` imports continue to work in this release. New integrations should use:
+
+```python
+from agent_governance import AgentGovernanceClient
+```
 
 ## Usage Terms
 
@@ -76,4 +84,4 @@ Proprietary commercial license. See `LICENSE`.
 
 ## Contact
 - Reach out to Anant at anantdhavale@gmail.com or info@homersemantics.com
-- If you are using Cerone, we would highly appreciate any feedback.
+- If you are using Agent Governance, we would highly appreciate any feedback.

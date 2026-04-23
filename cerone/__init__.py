@@ -1,15 +1,9 @@
 """
-Cerone Python SDK
-Zero Trust Security for AI Agents
+Backward-compatible import path for the Agent Governance Python SDK.
 
-Installation:
-    pip install cerone
-
-Usage:
-    from cerone import CeroneClient
-
-    client = CeroneClient(api_key="your_api_key")
-    result = client.validate(agent_id="agt_123", action="trade_execute", parameters={...})
+New integrations should prefer:
+    pip install agent-governance
+    from agent_governance import AgentGovernanceClient
 """
 
 import asyncio
@@ -40,7 +34,7 @@ except ModuleNotFoundError:
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
 # Keep runtime version aligned with package metadata.
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 __author__ = "Homer Semantics"
 EARLY_ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 
@@ -150,7 +144,7 @@ class CeroneClient:
             {
                 "X-API-Key": api_key,
                 "Content-Type": "application/json",
-                "User-Agent": f"cerone-python-sdk/{__version__}",
+                "User-Agent": f"agent-governance-python-sdk/{__version__}",
             }
         )
 

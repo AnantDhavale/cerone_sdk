@@ -1,4 +1,4 @@
-"""Setup configuration for Cerone Python SDK."""
+"""Setup configuration for the Agent Governance Python SDK."""
 
 import os
 from pathlib import Path
@@ -10,8 +10,8 @@ README = ROOT / "README.md"
 os.chdir(ROOT)
 
 setup(
-    name="cerone",
-    version="1.0.1",
+    name="agent-governance",
+    version="1.1.0",
     author="Anant Dhavale for Homer Semantics",
     author_email="info@homersemantics.com",
     description="Zero Trust Security for AI Agents",
@@ -24,7 +24,7 @@ setup(
         "Bug Tracker": "https://github.com/AnantDhavale/cerone_sdk/issues",
         "Homepage": "https://www.homersemantics.com/ai-agent-governance-and-oauth",
     },
-    packages=["cerone"],
+    packages=["agent_governance", "cerone"],
     include_package_data=True,
     classifiers=[
         "Development Status :: 4 - Beta",

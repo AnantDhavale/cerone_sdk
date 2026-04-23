@@ -1,21 +1,27 @@
-from cerone import AgentWrapper, CeroneClient, CeroneResponse, ValidationResult
+from agent_governance import (
+    AgentGovernanceClient,
+    AgentGovernanceResponse,
+    AgentWrapper,
+    ValidationResult,
+)
+from cerone import CeroneClient
 
 
 def test_cache_key_includes_parameters():
-    client = CeroneClient(api_key="sk_test", enable_cache=True)
+    client = AgentGovernanceClient(api_key="sk_test", enable_cache=True)
     key_a = client._cache_key("agt_1", "trade_execute", {"symbol": "BTC", "qty": 1})
     key_b = client._cache_key("agt_1", "trade_execute", {"symbol": "BTC", "qty": 2})
     assert key_a != key_b
 
 
 def test_retry_policy_defaults_to_idempotent_only():
-    client = CeroneClient(api_key="sk_test")
+    client = AgentGovernanceClient(api_key="sk_test")
     assert client._can_retry("GET") is True
     assert client._can_retry("POST") is False
 
 
 def test_validate_cache_respects_parameters():
-    client = CeroneClient(api_key="sk_test", enable_cache=True)
+    client = AgentGovernanceClient(api_key="sk_test", enable_cache=True)
     calls = {"count": 0}
 
     def fake_request(method, endpoint, **kwargs):
@@ -41,10 +47,10 @@ def test_validate_cache_respects_parameters():
 
 
 def test_agent_wrapper_executes_when_approved():
-    client = CeroneClient(api_key="sk_test")
+    client = AgentGovernanceClient(api_key="sk_test")
 
     def fake_validate(agent_id, action, parameters):
-        return CeroneResponse(
+        return AgentGovernanceResponse(
             result=ValidationResult.APPROVED,
             semantic_alignment=0.95,
             trust_score=0.99,
@@ -67,10 +73,15 @@ def test_agent_wrapper_executes_when_approved():
 
 
 def test_parse_validation_result_supports_flagged():
-    client = CeroneClient(api_key="sk_test")
+    client = AgentGovernanceClient(api_key="sk_test")
     assert client._parse_validation_result("flagged") == ValidationResult.FLAGGED
 
 
 def test_parse_validation_result_unknown_defaults_to_error():
-    client = CeroneClient(api_key="sk_test")
+    client = AgentGovernanceClient(api_key="sk_test")
     assert client._parse_validation_result("unknown_new_state") == ValidationResult.ERROR
+
+
+def test_legacy_cerone_import_remains_available():
+    client = CeroneClient(api_key="sk_test")
+    assert isinstance(client, AgentGovernanceClient)
