@@ -10,17 +10,19 @@ Most teams deploying agents in production still have weak runtime control over w
 
 ## Install
 
-The current SDK/package name in this repo is `aztp`.
+The current PyPI package name is `cerone`.
 
 ```bash
-pip install git+https://github.com/AnantDhavale/AZTP.git
+pip install cerone
 ```
+
+The SDK repository is `cerone-sdk`.
 
 If you are working locally:
 
 ```bash
-git clone https://github.com/AnantDhavale/AZTP.git
-cd AZTP
+git clone https://github.com/AnantDhavale/cerone-sdk.git
+cd cerone-sdk
 pip install -e .
 ```
 
@@ -57,38 +59,40 @@ Hosted service terms:
 
 ```python
 import asyncio
-from aztp.sdk import AZTPClient, AZTPAgent
+from cerone import CeroneClient
 
 async def main():
-    client = AZTPClient(
+    client = CeroneClient(
         api_url="https://aztp-homer-semantics.onrender.com",
         api_key="sk_free_...",
     )
 
-    agent = AZTPAgent(
-        purpose="Customer billing support",
-        capabilities=["db_read", "billing_api"],
-        client=client,
-    )
-    await agent.initialize()
+    try:
+        health = client.health_check()
+        print(f"Health: {health}")
 
-    print(f"Agent ID: {agent.agent_id}")
-    print(f"Trust score: {agent.certificate.trust_score}")
+        certificate = client.create_agent(
+            purpose="Customer billing support",
+            capabilities=["db_read", "billing_api"],
+        )
 
-    result = await agent.validate_and_execute(
-        tool="database_query",
-        parameters={"table": "billing", "customer_id": "123"},
-        execute_fn=lambda: {"amount": 99.99, "status": "paid"},
-    )
-    print(f"Result: {result}")
+        print(f"Agent ID: {certificate.agent_id}")
+        print(f"Trust score: {certificate.trust_score}")
 
-    child = await agent.spawn(
-        purpose="Verify roaming charges",
-        capabilities=["network_api"],
-    )
+        result = await client.validate_async(
+            agent_id=certificate.agent_id,
+            action="database_query",
+            parameters={"table": "billing", "customer_id": "123"},
+        )
+        print(f"Validation result: {result}")
 
-    await agent.terminate()
-    await client.close()
+        trust_score = client.get_trust_score(certificate.agent_id)
+        print(f"Trust score: {trust_score}")
+
+        audit_log = client.get_audit_log(certificate.agent_id, limit=10)
+        print(f"Audit log: {audit_log}")
+    finally:
+        await client.aclose()
 
 asyncio.run(main())
 ```
@@ -114,49 +118,73 @@ Cerone governs agent **behaviour**, not inference.
 You keep your own OpenAI, Anthropic, or other provider key and pass it directly to your model calls. Cerone validates the agent action and records the governance trail, but it does not sit in the middle of your model billing path.
 
 ```python
+import asyncio
 import openai
-from aztp.sdk import AZTPClient, AZTPAgent
+from cerone import CeroneClient
 
-client = AZTPClient(
-    api_url="https://aztp-homer-semantics.onrender.com",
-    api_key="sk_free_...",
-)
-openai_client = openai.AsyncOpenAI(api_key="sk-...")  # your key, your spend
+async def main():
+    client = CeroneClient(
+        api_url="https://aztp-homer-semantics.onrender.com",
+        api_key="sk_free_...",
+    )
+    openai_client = openai.AsyncOpenAI(api_key="sk-...")  # your key, your spend
 
-agent = AZTPAgent(
-    purpose="Summarise support tickets",
-    capabilities=["read_ticket", "write_summary"],
-    client=client,
-)
-await agent.initialize()
+    try:
+        certificate = client.create_agent(
+            purpose="Summarise support tickets",
+            capabilities=["read_ticket", "write_summary"],
+        )
 
-await agent.validate_and_execute(
-    tool="write_summary",
-    parameters={"ticket_id": "T-001"},
-    execute_fn=lambda: openai_client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": "Summarise ticket T-001"}],
-    ),
-)
+        validation = await client.validate_async(
+            agent_id=certificate.agent_id,
+            action="write_summary",
+            parameters={"ticket_id": "T-001"},
+        )
+        print(f"Validation result: {validation}")
+
+        response = await openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": "Summarise ticket T-001"}],
+        )
+        print(response)
+    finally:
+        await client.aclose()
+
+asyncio.run(main())
 ```
 
 ---
 
-## Decorator Pattern
+## Validation Pattern
+
+The current `cerone` PyPI SDK exposes validation through `CeroneClient`.
+Validate the intended action before running the local tool or model call you control.
 
 ```python
-agent = AZTPAgent(
+from cerone import CeroneClient
+
+client = CeroneClient(
+    api_url="https://aztp-homer-semantics.onrender.com",
+    api_key="sk_free_...",
+)
+
+certificate = client.create_agent(
     purpose="Customer data analysis",
     capabilities=["db_read", "analytics"],
-    client=client,
 )
-await agent.initialize()
 
-@agent.action("database_query")
-async def query_customers(customer_id: str):
-    return {"customer_id": customer_id, "name": "Jane Doe"}
+validation = client.validate(
+    agent_id=certificate.agent_id,
+    action="database_query",
+    parameters={"customer_id": "123"},
+)
+print(f"Validation result: {validation}")
 
-customer = await query_customers("123")
+# Run your local tool after validation.
+customer = {"customer_id": "123", "name": "Jane Doe"}
+print(customer)
+
+client.close()
 ```
 
 ---
@@ -249,6 +277,6 @@ Free trial is subject to change. Use the software at your own risk.
 - API docs: [aztp-homer-semantics.onrender.com/docs](https://aztp-homer-semantics.onrender.com/docs)
 - Support: [info@homersemantics.com](mailto:info@homersemantics.com)
 - Founder: [anantdhavale@gmail.com](mailto:anantdhavale@gmail.com)
-- Issues: [github.com/AnantDhavale/AZTP/issues](https://github.com/AnantDhavale/AZTP/issues)
+- Issues: [github.com/AnantDhavale/cerone-sdk/issues](https://github.com/AnantDhavale/cerone-sdk/issues)
 
-If you are using Cerone, feedback is genuinely useful. I am doing some additions/ changes, please do reach out if you face any issues.
+If you are using Cerone, feedback is genuinely useful. I am doing some additions/ changes, please do reach out if you face any issues. POCs and design partners welcome.
