@@ -35,10 +35,10 @@ Self-serve signup. No waitlist and no approval step.
 ```bash
 curl -X POST https://aztp-homer-semantics.onrender.com/signup \
   -H "Content-Type: application/json" \
-  -d '{"email": "you@example.com", "password": "your-secure-password", "name": "Your Name"}'
+  -d '{"email": "you@example.com", "name": "Your Name"}'
 ```
 
-You receive an `sk_free_...` key instantly.
+You receive an `sk_free_...` key instantly. No password is required for SDK authentication.
 
 Free tier currently includes:
 - **5,000 validations per 30-day window**
