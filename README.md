@@ -22,9 +22,10 @@ pip install cerone
 If you are working from source, clone this repository and install it locally:
 
 ```bash
-git clone https://github.com/AnantDhavale/cerone-sdk.git
-cd cerone-sdk
+git clone https://github.com/AnantDhavale/cerone_sdk.git
+cd cerone_sdk
 pip install -e .
+
 ```
 
 ---
@@ -56,7 +57,7 @@ Hosted signup and support:
 
 Hosted service terms:
 
-- [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md)
+- [TERMS_OF_SERVICE.md] https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md
 
 ---
 
@@ -267,25 +268,24 @@ tier feature flags.
 
 ## Documentation
 
-- [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md)
+- [TERMS_OF_SERVICE.md]https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md
 
-Hosted API docs:
-
-- `https://api.homersemantics.com/docs`
 
 ---
 
 ## License
 
-This repository and package metadata currently use a **proprietary commercial
-SDK license**.
+## License
+
+This SDK repository currently uses a proprietary commercial SDK license.
 
 The SDK source license and the hosted Cerone service terms are separate:
 
-- SDK / package code: [LICENSE](LICENSE)
-- hosted service usage: [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md)
+- SDK / package code: [LICENSE](https://github.com/AnantDhavale/cerone_sdk/blob/main/LICENSE)
+- Hosted service usage: [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
 
 Free trial and hosted commercial terms are subject to change.
+
 
 ---
 
