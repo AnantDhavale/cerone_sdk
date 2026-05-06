@@ -2,23 +2,24 @@
 
 **Powered by AZTP (Agent Zero Trust Platform)**
 
-Cerone gives every AI agent a cryptographic identity, validates that its actions align with its declared purpose, and produces an auditable runtime trail across identity, validation, governance, and delegated token exchange.
+Cerone gives every AI agent a cryptographic identity, validates that its
+actions align with its declared purpose, and produces an auditable runtime
+trail across identity, validation, governance, and delegated token exchange.
 
-Most teams deploying agents in production still have weak runtime control over what those agents actually do. Cerone is built to fix that.
+Most teams deploying agents in production still have weak runtime control over
+what those agents actually do. Cerone is built to fix that.
 
 ---
 
 ## Install
 
-The current PyPI package name is `cerone`.
+The current hosted SDK package name is `cerone`.
 
 ```bash
 pip install cerone
 ```
 
-The SDK repository is `cerone-sdk`.
-
-If you are working locally:
+If you are working from source, clone this repository and install it locally:
 
 ```bash
 git clone https://github.com/AnantDhavale/cerone-sdk.git
@@ -30,28 +31,32 @@ pip install -e .
 
 ## Get Your Free API Key
 
-Self-serve signup. No waitlist and no approval step.
+Hosted onboarding is self-serve. No waitlist and no approval step.
 
 ```bash
-curl -X POST https://aztp-homer-semantics.onrender.com/signup \
+curl -X POST https://api.homersemantics.com/signup \
   -H "Content-Type: application/json" \
   -d '{"email": "you@example.com", "name": "Your Name"}'
 ```
 
-You receive an `sk_free_...` key instantly. No password is required for SDK authentication.
+You receive an `sk_free_...` key instantly. No password is required for SDK
+authentication.
 
 Free tier currently includes:
+
 - **5,000 validations per 30-day window**
 - **free for the first 30 days from signup**
 - **bring your own OpenAI / Anthropic / other model-provider key**
 - **Cerone does not proxy or charge for model inference**
 
 Hosted signup and support:
+
 - [homersemantics.com](https://homersemantics.com)
 - [info@homersemantics.com](mailto:info@homersemantics.com)
 
 Hosted service terms:
-- [HOSTED_TERMS.md](HOSTED_TERMS.md)
+
+- [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md)
 
 ---
 
@@ -59,11 +64,13 @@ Hosted service terms:
 
 ```python
 import asyncio
+
 from cerone import CeroneClient
+
 
 async def main():
     client = CeroneClient(
-        api_url="https://aztp-homer-semantics.onrender.com",
+        base_url="https://api.homersemantics.com",
         api_key="sk_free_...",
     )
 
@@ -94,6 +101,7 @@ async def main():
     finally:
         await client.aclose()
 
+
 asyncio.run(main())
 ```
 
@@ -115,19 +123,23 @@ asyncio.run(main())
 
 Cerone governs agent **behaviour**, not inference.
 
-You keep your own OpenAI, Anthropic, or other provider key and pass it directly to your model calls. Cerone validates the agent action and records the governance trail, but it does not sit in the middle of your model billing path.
+You keep your own OpenAI, Anthropic, or other provider key and pass it directly
+to your model calls. Cerone validates the agent action and records the
+governance trail, but it does not sit in the middle of your model billing path.
 
 ```python
 import asyncio
 import openai
+
 from cerone import CeroneClient
+
 
 async def main():
     client = CeroneClient(
-        api_url="https://aztp-homer-semantics.onrender.com",
+        base_url="https://api.homersemantics.com",
         api_key="sk_free_...",
     )
-    openai_client = openai.AsyncOpenAI(api_key="sk-...")  # your key, your spend
+    openai_client = openai.AsyncOpenAI(api_key="sk-...")
 
     try:
         certificate = client.create_agent(
@@ -150,6 +162,7 @@ async def main():
     finally:
         await client.aclose()
 
+
 asyncio.run(main())
 ```
 
@@ -157,14 +170,15 @@ asyncio.run(main())
 
 ## Validation Pattern
 
-The current `cerone` PyPI SDK exposes validation through `CeroneClient`.
-Validate the intended action before running the local tool or model call you control.
+The current `cerone` SDK exposes validation through `CeroneClient`.
+Validate the intended action before running the local tool or model call you
+control.
 
 ```python
 from cerone import CeroneClient
 
 client = CeroneClient(
-    api_url="https://aztp-homer-semantics.onrender.com",
+    base_url="https://api.homersemantics.com",
     api_key="sk_free_...",
 )
 
@@ -198,9 +212,10 @@ client.close()
 | Audit retention | 7 days | 30 days | 90 days | 365 days |
 | Model access | BYO only | BYO only | BYO now, managed later | BYO or managed |
 | Support | Community | Email | Priority | Dedicated |
-| Price | Free for first 30 days | Contact / self-serve pricing | Contact / self-serve pricing | Contact us |
+| Commercial model | Free for first 30 days | Contact / self-serve pricing | Contact / self-serve pricing | Contact us |
 
-If you want fixed public pricing in this README, update this table once the commercial page is final.
+Commercial packaging may evolve, but the current hosted free-tier limits above
+match the backend configuration.
 
 ---
 
@@ -213,7 +228,7 @@ Your Agent Code
   Cerone SDK  ──────────────────────────────────────────┐
       │                                                  │
       ▼                                                  ▼
-AZTP Platform (aztp-homer-semantics.onrender.com)  Your LLM Provider
+AZTP Platform (api.homersemantics.com)            Your LLM Provider
   ├─ Identity Manager
   ├─ Semantic Validator
   ├─ Trust Engine
@@ -224,7 +239,7 @@ AZTP Platform (aztp-homer-semantics.onrender.com)  Your LLM Provider
 
 ## Supported Frameworks and Integrations
 
-Cerone currently ships adapters or normalization paths for:
+AZTP currently ships adapters or normalization paths for:
 
 - CrewAI
 - Google ADK
@@ -241,42 +256,44 @@ Cerone currently ships adapters or normalization paths for:
 ## Usage and Quota
 
 ```bash
-curl https://aztp-homer-semantics.onrender.com/usage \
+curl https://api.homersemantics.com/usage \
   -H "X-API-Key: sk_free_..."
 ```
 
-This returns current usage, remaining quota, reset date, free-tier expiry, and tier feature flags.
+This returns current usage, remaining quota, reset date, free-tier expiry, and
+tier feature flags.
 
 ---
 
 ## Documentation
 
-- [SDK Onboarding Guide](SDK_ONBOARDING_GUIDE.md)
-- [Hosted Service Terms](HOSTED_TERMS.md)
-- [Render Environment Changes](RENDER_ENV_CHANGES.md)
+- [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md)
 
-Live API docs:
-- [aztp-homer-semantics.onrender.com/docs](https://aztp-homer-semantics.onrender.com/docs)
+Hosted API docs:
+
+- `https://api.homersemantics.com/docs`
 
 ---
 
 ## License
 
-Current repository/package metadata is **MIT**.
+This repository and package metadata currently use a **proprietary commercial
+SDK license**.
 
-The open-source repository license and the hosted Cerone service terms are separate:
-- repository/package code: **MIT**
-- hosted service usage: [HOSTED_TERMS.md](HOSTED_TERMS.md)
-Free trial is subject to change. Use the software at your own risk. 
+The SDK source license and the hosted Cerone service terms are separate:
+
+- SDK / package code: [LICENSE](LICENSE)
+- hosted service usage: [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md)
+
+Free trial and hosted commercial terms are subject to change.
 
 ---
 
 ## Contact and Feedback
 
 - Website: [homersemantics.com](https://homersemantics.com)
-- API docs: [aztp-homer-semantics.onrender.com/docs](https://aztp-homer-semantics.onrender.com/docs)
 - Support: [info@homersemantics.com](mailto:info@homersemantics.com)
 - Founder: [anantdhavale@gmail.com](mailto:anantdhavale@gmail.com)
-- Issues: [github.com/AnantDhavale/cerone-sdk/issues](https://github.com/AnantDhavale/cerone-sdk/issues)
 
-If you are using Cerone, feedback is genuinely useful. I am doing some additions/ changes, please do reach out if you face any issues. POCs and design partners welcome.
+If you are using Cerone, feedback is genuinely useful. POCs and design
+partners are welcome.
