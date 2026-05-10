@@ -85,3 +85,48 @@ def test_parse_validation_result_unknown_defaults_to_error():
 def test_legacy_cerone_import_remains_available():
     client = CeroneClient(api_key="sk_test")
     assert isinstance(client, AgentGovernanceClient)
+
+
+def test_client_bootstraps_trial_token_when_api_key_missing():
+    client = CeroneClient(api_key=None)
+    client._persist_trial_token = lambda token: None
+
+    calls = []
+
+    class _Response:
+        def __init__(self, status_code, payload):
+            self.status_code = status_code
+            self._payload = payload
+            self.text = str(payload)
+
+        def json(self):
+            return self._payload
+
+    def fake_request(method, url, timeout=None, **kwargs):
+        calls.append((method, url, kwargs))
+        if url.endswith("/trial/session"):
+            return _Response(200, {"trial_token": "sk_trial_bootstrap"})
+        if url.endswith("/v1/certificates"):
+            return _Response(
+                200,
+                {
+                    "certificate": {
+                        "agent_id": "agt_123",
+                        "purpose": "support",
+                        "capabilities": ["db_read"],
+                        "signature": "sig",
+                        "issued_at": "2026-05-10T00:00:00Z",
+                    },
+                    "trust_score": 0.95,
+                },
+            )
+        raise AssertionError(f"Unexpected URL: {url}")
+
+    client._session.request = fake_request
+    cert = client.create_agent("support", ["db_read"])
+
+    assert cert.agent_id == "agt_123"
+    assert client.api_key == "sk_trial_bootstrap"
+    assert client._session.headers["X-API-Key"] == "sk_trial_bootstrap"
+    assert calls[0][1].endswith("/trial/session")
+    assert calls[1][1].endswith("/v1/certificates")

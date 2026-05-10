@@ -10,6 +10,7 @@ import asyncio
 import hashlib
 import json
 import logging
+from pathlib import Path
 import time
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -34,7 +35,7 @@ except ModuleNotFoundError:
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
 # Keep runtime version aligned with package metadata.
-__version__ = "1.1.0"
+__version__ = "1.1.4"
 __author__ = "Homer Semantics"
 EARLY_ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 
@@ -108,8 +109,8 @@ class CeroneClient:
 
     def __init__(
         self,
-        api_key: str,
-        base_url: str = "https://api.homersemantics.com",
+        api_key: Optional[str] = None,
+        base_url: str = "https://aztp-homer-semantics.onrender.com",
         timeout: int = 30,
         max_retries: int = 3,
         enable_cache: bool = False,
@@ -119,7 +120,8 @@ class CeroneClient:
         Initialize Cerone client.
 
         Args:
-            api_key: Your Cerone API key.
+            api_key: Your Cerone API key. If omitted, the client will attempt
+                to bootstrap an anonymous hosted trial token automatically.
             base_url: API endpoint (default: production).
             timeout: Request timeout in seconds.
             max_retries: Number of retry attempts for eligible requests.
@@ -134,6 +136,7 @@ class CeroneClient:
         self.max_retries = max(0, max_retries)
         self.enable_cache = enable_cache
         self.retry_non_idempotent = retry_non_idempotent
+        self._trial_token_path = Path.home() / ".cerone" / "trial_token"
 
         # F18: bounded LRU cache — plain dict grows unboundedly in long-running
         # processes; OrderedDict with a size cap gives O(1) eviction.
@@ -142,11 +145,12 @@ class CeroneClient:
         self._session = requests.Session()
         self._session.headers.update(
             {
-                "X-API-Key": api_key,
                 "Content-Type": "application/json",
                 "User-Agent": f"agent-governance-python-sdk/{__version__}",
             }
         )
+        if api_key:
+            self._session.headers["X-API-Key"] = api_key
 
         self._async_session: Optional[Any] = None
 
@@ -384,6 +388,78 @@ class CeroneClient:
         digest = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
         return f"{agent_id}:{action}:{digest}"
 
+    def _load_cached_trial_token(self) -> Optional[str]:
+        if self.api_key:
+            return self.api_key
+        try:
+            if self._trial_token_path.exists():
+                token = self._trial_token_path.read_text(encoding="utf-8").strip()
+                if token.startswith("sk_trial_"):
+                    return token
+        except Exception:
+            logger.warning("trial_token_cache_read_failed")
+        return None
+
+    def _persist_trial_token(self, token: str) -> None:
+        try:
+            self._trial_token_path.parent.mkdir(parents=True, exist_ok=True)
+            self._trial_token_path.write_text(token, encoding="utf-8")
+        except Exception:
+            logger.warning("trial_token_cache_write_failed")
+
+    def _apply_api_key(self, token: str) -> None:
+        self.api_key = token
+        self._session.headers["X-API-Key"] = token
+        if self._async_session is not None and not self._async_session.closed:
+            self._async_session.headers["X-API-Key"] = token
+
+    def _clear_trial_token(self) -> None:
+        if self.api_key and self.api_key.startswith("sk_trial_"):
+            self.api_key = None
+            self._session.headers.pop("X-API-Key", None)
+            if self._async_session is not None and not self._async_session.closed:
+                self._async_session.headers.pop("X-API-Key", None)
+            try:
+                if self._trial_token_path.exists():
+                    self._trial_token_path.unlink()
+            except Exception:
+                logger.warning("trial_token_cache_delete_failed")
+
+    def _ensure_api_key(self) -> None:
+        if self.api_key:
+            return
+        cached = self._load_cached_trial_token()
+        if cached:
+            self._apply_api_key(cached)
+            return
+        response = self._session.request(
+            "POST",
+            f"{self.base_url}/trial/session",
+            timeout=self.timeout,
+            json={},
+        )
+        self._raise_for_status(response.status_code, response.text)
+        payload = response.json()
+        trial_token = payload["trial_token"]
+        self._apply_api_key(trial_token)
+        self._persist_trial_token(trial_token)
+
+    async def _ensure_api_key_async(self) -> None:
+        if self.api_key:
+            return
+        cached = self._load_cached_trial_token()
+        if cached:
+            self._apply_api_key(cached)
+            return
+        session = await self._get_async_session()
+        async with session.request("POST", f"{self.base_url}/trial/session", json={}) as response:
+            body_text = await response.text()
+            self._raise_for_status(response.status, body_text)
+            payload = json.loads(body_text)
+        trial_token = payload["trial_token"]
+        self._apply_api_key(trial_token)
+        self._persist_trial_token(trial_token)
+
     def _normalize_action_payload(
         self,
         action: Any,
@@ -434,6 +510,8 @@ class CeroneClient:
 
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Dict[str, Any]:
         """Internal request with bounded retries."""
+        if endpoint != "/trial/session":
+            self._ensure_api_key()
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
         attempts = (self.max_retries + 1) if can_retry else 1
@@ -446,7 +524,13 @@ class CeroneClient:
                     return response.json()
                 except ValueError as exc:
                     raise ValidationError("Invalid JSON response from server") from exc
-            except (AuthenticationError, RateLimitError, _ClientRequestError):
+            except AuthenticationError:
+                if self.api_key and self.api_key.startswith("sk_trial_") and attempt < attempts - 1:
+                    self._clear_trial_token()
+                    self._ensure_api_key()
+                    continue
+                raise
+            except (RateLimitError, _ClientRequestError):
                 raise
             except _ServerError:
                 if attempt < attempts - 1:
@@ -483,6 +567,8 @@ class CeroneClient:
 
     async def _request_async(self, method: str, endpoint: str, **kwargs: Any) -> Dict[str, Any]:
         """Async request helper with bounded retries."""
+        if endpoint != "/trial/session":
+            await self._ensure_api_key_async()
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
         attempts = (self.max_retries + 1) if can_retry else 1
@@ -497,7 +583,13 @@ class CeroneClient:
                         return json.loads(body_text)
                     except json.JSONDecodeError as exc:
                         raise ValidationError("Invalid JSON response from server") from exc
-            except (AuthenticationError, RateLimitError, _ClientRequestError):
+            except AuthenticationError:
+                if self.api_key and self.api_key.startswith("sk_trial_") and attempt < attempts - 1:
+                    self._clear_trial_token()
+                    await self._ensure_api_key_async()
+                    continue
+                raise
+            except (RateLimitError, _ClientRequestError):
                 raise
             except _ServerError:
                 if attempt < attempts - 1:

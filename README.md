@@ -10,6 +10,7 @@ Most teams deploying agents in production still have weak runtime control over
 what those agents actually do. Cerone is built to fix that.
 
 Why developers try Cerone:
+- start immediately with hosted trial access from the SDK
 - add governance without replacing the rest of the agent stack
 - keep your own model-provider key and model spend
 - get explicit `approved`, `flagged`, or `rejected` runtime decisions
@@ -41,13 +42,13 @@ pip install -e .
 Cerone now has two usage paths:
 
 1. **Hosted API trial**
-   - the hosted AZTP backend supports an anonymous evaluation flow
-   - that trial currently lives at the API layer
-   - if you are testing the raw hosted API, contact us for the latest trial guidance
+   - `CeroneClient()` can bootstrap an anonymous hosted trial token automatically
+   - the current hosted trial is designed for evaluation and demo use
+   - if the trial is exhausted, contact us for persistent access
 
 2. **Python SDK usage**
-   - the current `cerone` Python package still expects an API key
-   - for SDK use in demos, POCs, or production, email us for a provisioned key
+   - use `CeroneClient()` with no key for hosted trial bootstrap
+   - use a provisioned key for persistent POCs or production environments
 
 Hosted signup and support:
 
@@ -71,7 +72,6 @@ from cerone import CeroneClient
 async def main():
     client = CeroneClient(
         base_url="https://aztp-homer-semantics.onrender.com",
-        api_key="sk_startup_...",
     )
 
     try:
@@ -137,7 +137,6 @@ from cerone import CeroneClient
 async def main():
     client = CeroneClient(
         base_url="https://aztp-homer-semantics.onrender.com",
-        api_key="sk_startup_...",
     )
     openai_client = openai.AsyncOpenAI(api_key="sk-...")
 
@@ -179,7 +178,6 @@ from cerone import CeroneClient
 
 client = CeroneClient(
     base_url="https://aztp-homer-semantics.onrender.com",
-    api_key="sk_startup_...",
 )
 
 certificate = client.create_agent(
@@ -291,3 +289,14 @@ Free trial and hosted commercial terms are subject to change.
 
 If you are using Cerone, feedback is genuinely useful. POCs and design
 partners are welcome.
+
+---
+
+## Disclaimer
+
+Cerone is provided for evaluation and operational governance support, but final
+deployment, enforcement choices, and production use remain your responsibility.
+Use the SDK and hosted service at your own discretion and risk. To the maximum
+extent permitted by law, Homer Semantics and Anant Dhavale are not liable for
+any direct, indirect, incidental, consequential, business, data, model, or
+security losses arising from use, misuse, non-use, or reliance on Cerone.
