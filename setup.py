@@ -11,7 +11,7 @@ os.chdir(ROOT)
 
 setup(
     name="agent-governance",
-    version="1.1.4",
+    version="1.1.5",
     author="Anant Dhavale for Homer Semantics",
     author_email="info@homersemantics.com",
     description="Zero Trust Security for AI Agents",

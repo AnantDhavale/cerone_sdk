@@ -35,7 +35,7 @@ except ModuleNotFoundError:
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
 # Keep runtime version aligned with package metadata.
-__version__ = "1.1.4"
+__version__ = "1.1.5"
 __author__ = "Homer Semantics"
 EARLY_ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 
@@ -204,12 +204,13 @@ class CeroneClient:
         parameters: Optional[Dict[str, Any]] = None,
     ) -> CeroneResponse:
         """Validate an agent action in real-time."""
+        normalized_agent_id = self._normalize_agent_id(agent_id)
         action_payload = self._normalize_action_payload(action, parameters)
         tool_name = action_payload["tool"]
         tool_parameters = action_payload["parameters"]
 
         if self._cache is not None:
-            cache_key = self._cache_key(agent_id, tool_name, tool_parameters)
+            cache_key = self._cache_key(normalized_agent_id, tool_name, tool_parameters)
             cached = self._cache.get(cache_key)
             if cached and time.time() - cached["timestamp"] < 300:
                 if cached["trust_score"] > 0.95:
@@ -219,7 +220,7 @@ class CeroneClient:
                     return cast(CeroneResponse, cached["response"])
 
         start_time = time.time()
-        payload = {"agent_id": agent_id, "action": action_payload}
+        payload = {"agent_id": normalized_agent_id, "action": action_payload}
         response = self._request("POST", "/v1/validate", json=payload)
         latency_ms = int((time.time() - start_time) * 1000)
 
@@ -229,7 +230,7 @@ class CeroneClient:
             semantic_alignment=float(response.get("semantic_alignment", 0.0) or 0.0),
             trust_score=float(response.get("trust_score", 0.0) or 0.0),
             violations=response.get("violations", []),
-            agent_id=agent_id,
+            agent_id=normalized_agent_id,
             action=tool_name,
             timestamp=str(response.get("timestamp", "")),
             latency_ms=latency_ms,
@@ -240,7 +241,7 @@ class CeroneClient:
             and cerone_response.result == ValidationResult.APPROVED
             and cerone_response.trust_score > 0.95
         ):
-            cache_key = self._cache_key(agent_id, tool_name, tool_parameters)
+            cache_key = self._cache_key(normalized_agent_id, tool_name, tool_parameters)
             self._cache[cache_key] = {
                 "response": cerone_response,
                 "trust_score": cerone_response.trust_score,
@@ -267,8 +268,9 @@ class CeroneClient:
             )
 
         start_time = time.time()
+        normalized_agent_id = self._normalize_agent_id(agent_id)
         action_payload = self._normalize_action_payload(action, parameters)
-        payload = {"agent_id": agent_id, "action": action_payload}
+        payload = {"agent_id": normalized_agent_id, "action": action_payload}
         data = await self._request_async("POST", "/v1/validate", json=payload)
         latency_ms = int((time.time() - start_time) * 1000)
 
@@ -278,7 +280,7 @@ class CeroneClient:
             semantic_alignment=float(data.get("semantic_alignment", 0.0) or 0.0),
             trust_score=float(data.get("trust_score", 0.0) or 0.0),
             violations=data.get("violations", []),
-            agent_id=agent_id,
+            agent_id=normalized_agent_id,
             action=action_payload["tool"],
             timestamp=str(data.get("timestamp", "")),
             latency_ms=latency_ms,
@@ -292,11 +294,14 @@ class CeroneClient:
             agent_id   (str)
             action     (dict with ``tool`` and ``parameters`` keys)
         """
+        if not validations:
+            raise ValidationError("validate_batch requires at least one validation item")
         # F3: build properly shaped ValidationRequest objects for the backend
         requests_payload = []
         for v in validations:
+            normalized_agent_id = self._normalize_agent_id(v["agent_id"])
             requests_payload.append({
-                "agent_id": v["agent_id"],
+                "agent_id": normalized_agent_id,
                 "action": v["action"],   # must be {"tool": str, "parameters": dict}
             })
 
@@ -324,7 +329,8 @@ class CeroneClient:
 
     def get_trust_score(self, agent_id: str) -> Dict[str, Any]:
         """Get current trust score and history for an agent."""
-        return self._request("GET", f"/v1/trust/{agent_id}")
+        normalized_agent_id = self._normalize_agent_id(agent_id)
+        return self._request("GET", f"/v1/trust/{normalized_agent_id}")
 
     @staticmethod
     def _parse_validation_result(value: Any) -> ValidationResult:
@@ -353,9 +359,10 @@ class CeroneClient:
         Returns a list of event dicts.  Each dict contains at minimum:
             timestamp, agent_id, action, result, change_reason
         """
+        normalized_agent_id = self._normalize_agent_id(agent_id)
         # F4: backend returns {"events": [...], ...} — read the correct key
         params = {"limit": limit, "offset": offset}
-        response = self._request("GET", f"/v1/audit/agent/{agent_id}", params=params)
+        response = self._request("GET", f"/v1/audit/agent/{normalized_agent_id}", params=params)
         return response["events"]
 
     # ------------------------------------------------------------------
@@ -387,6 +394,16 @@ class CeroneClient:
         serialized = json.dumps(parameters, sort_keys=True, default=str, separators=(",", ":"))
         digest = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
         return f"{agent_id}:{action}:{digest}"
+
+    def _normalize_agent_id(self, agent_id: Any) -> str:
+        if not isinstance(agent_id, str):
+            raise ValidationError("agent_id must be a non-empty string")
+        normalized = agent_id.strip()
+        if not normalized:
+            raise ValidationError("agent_id must be a non-empty string")
+        if normalized.startswith("<") or "MagicMock" in normalized:
+            raise ValidationError("agent_id must be a real Cerone agent ID, not a mock object representation")
+        return normalized
 
     def _load_cached_trial_token(self) -> Optional[str]:
         if self.api_key:

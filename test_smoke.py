@@ -5,6 +5,7 @@ from agent_governance import (
     ValidationResult,
 )
 from cerone import CeroneClient
+from cerone import ValidationError
 
 
 def test_cache_key_includes_parameters():
@@ -130,3 +131,23 @@ def test_client_bootstraps_trial_token_when_api_key_missing():
     assert client._session.headers["X-API-Key"] == "sk_trial_bootstrap"
     assert calls[0][1].endswith("/trial/session")
     assert calls[1][1].endswith("/v1/certificates")
+
+
+def test_get_audit_log_rejects_mock_like_agent_id_locally():
+    client = CeroneClient(api_key="sk_test")
+    try:
+        client.get_audit_log("<MagicMock id='123'>")
+    except ValidationError as exc:
+        assert "real Cerone agent ID" in str(exc)
+    else:
+        raise AssertionError("Expected ValidationError for mock-like agent_id")
+
+
+def test_validate_batch_rejects_empty_payload_locally():
+    client = CeroneClient(api_key="sk_test")
+    try:
+        client.validate_batch([])
+    except ValidationError as exc:
+        assert "at least one validation item" in str(exc)
+    else:
+        raise AssertionError("Expected ValidationError for empty batch")
