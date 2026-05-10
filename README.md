@@ -1,4 +1,3 @@
-```md
 # Cerone — Runtime Governance for AI Agents
 
 **Install it. Create an agent. Validate a real action. See a live governance decision in minutes.**
@@ -229,4 +228,3 @@ from use of the SDK or hosted service. Use Cerone at your own discretion and ris
 
 If you are building with agents and want runtime governance that is actually
 usable, reach out.
-```
