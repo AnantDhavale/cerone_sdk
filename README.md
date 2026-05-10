@@ -1,66 +1,37 @@
-# Cerone — Governance and Zero Trust Runtime for AI Agents
+```md
+# Cerone — Runtime Governance for AI Agents
 
-Start immediately with hosted trial access (2500 free validations) from the SDK
+**Install it. Create an agent. Validate a real action. See a live governance decision in minutes.**
 
+Cerone gives every AI agent a cryptographic identity, validates intended actions
+before execution, and returns explicit runtime decisions:
+
+- `approved`
+- `flagged`
+- `rejected`
+
+Start immediately from the SDK with **2,500 one-time free validations**.
 
 **Powered by AZTP (Agent Zero Trust Platform)**
 
-Cerone gives every AI agent a cryptographic identity, validates that its
-actions align with its declared purpose, and produces an auditable runtime
-trail across identity, validation, governance, and delegated token exchange.
+---
 
-Most teams deploying agents in production still have weak runtime control over
-what those agents actually do. Cerone is built to fix that.
+## Why Developers Use Cerone
 
-Why developers try Cerone:
 - start immediately with hosted trial access from the SDK
-- add governance without replacing the rest of the agent stack
-- keep your own model-provider key and model spend
-- get explicit `approved`, `flagged`, or `rejected` runtime decisions
-- use a lean runtime trust layer instead of a heavy control-plane rewrite
+- validate agent actions before they execute
+- keep your own OpenAI, Anthropic, or other model key
+- add runtime governance without replacing the rest of your stack
+- get real decisions instead of vague policy claims
+- use a lean trust layer instead of a heavy control-plane rewrite
 
 ---
 
 ## Install
 
-The current hosted SDK package name is `cerone`.
-
 ```bash
 pip install cerone
 ```
-
-If you are working from source, clone this repository and install it locally:
-
-```bash
-git clone https://github.com/AnantDhavale/cerone_sdk.git
-cd cerone_sdk
-pip install -e .
-
-```
-
----
-
-## Access Modes
-
-Cerone now has two usage paths:
-
-1. **Hosted API trial**
-   - `CeroneClient()` can bootstrap an anonymous hosted trial token automatically
-   - the current hosted trial is designed for evaluation and demo use
-   - if the trial is exhausted, contact us for persistent access
-
-2. **Python SDK usage**
-   - use `CeroneClient()` with no key for hosted trial bootstrap
-   - use a provisioned key for persistent POCs or production environments
-
-Hosted signup and support:
-
-- [homersemantics.com](https://homersemantics.com)
-- [info@homersemantics.com](mailto:info@homersemantics.com)
-
-Hosted service terms:
-
-- [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
 
 ---
 
@@ -78,35 +49,39 @@ async def main():
     )
 
     try:
-        health = client.health_check()
-        print(f"Health: {health}")
-
         certificate = client.create_agent(
             purpose="Customer billing support",
             capabilities=["db_read", "billing_api"],
         )
-
-        print(f"Agent ID: {certificate.agent_id}")
-        print(f"Trust score: {certificate.trust_score}")
 
         result = await client.validate_async(
             agent_id=certificate.agent_id,
             action="database_query",
             parameters={"table": "billing", "customer_id": "123"},
         )
-        print(f"Validation result: {result}")
 
-        trust_score = client.get_trust_score(certificate.agent_id)
-        print(f"Trust score: {trust_score}")
-
-        audit_log = client.get_audit_log(certificate.agent_id, limit=10)
-        print(f"Audit log: {audit_log}")
+        print("Agent:", certificate.agent_id)
+        print("Decision:", result.result)
+        print("Trust:", result.trust_score)
     finally:
         await client.aclose()
 
 
 asyncio.run(main())
 ```
+
+---
+
+## What Cerone Does
+
+Cerone is a runtime trust and governance layer for AI agents.
+
+It:
+- gives each agent a cryptographic identity
+- validates intended actions against declared purpose and capability
+- returns explicit runtime decisions before execution
+- records audit and trust signals across agent activity
+- preserves lineage and delegation boundaries where applicable
 
 ---
 
@@ -122,12 +97,35 @@ asyncio.run(main())
 
 ---
 
+## Trial and Access
+
+Cerone currently has two usage paths:
+
+### 1. Hosted Trial
+- `CeroneClient()` can bootstrap an anonymous hosted trial token automatically
+- includes **2,500 one-time successful validations**
+- no manual signup required to begin evaluation
+- intended for initial testing and demos
+
+### 2. Persistent Access
+- for POCs, pilots, and production usage
+- contact us for provisioned persistent SDK access
+
+Support and contact:
+- [homersemantics.com](https://homersemantics.com)
+- [info@homersemantics.com](mailto:info@homersemantics.com)
+
+Hosted service terms:
+- [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
+
+---
+
 ## Bring Your Own Model Key
 
 Cerone governs agent **behaviour**, not inference.
 
 You keep your own OpenAI, Anthropic, or other provider key and pass it directly
-to your model calls. Cerone validates the agent action and records the
+to your model calls. Cerone validates the intended action and records the
 governance trail, but it does not sit in the middle of your model billing path.
 
 ```python
@@ -154,7 +152,7 @@ async def main():
             action="write_summary",
             parameters={"ticket_id": "T-001"},
         )
-        print(f"Validation result: {validation}")
+        print("Decision:", validation.result)
 
         response = await openai_client.chat.completions.create(
             model="gpt-4o-mini",
@@ -170,54 +168,18 @@ asyncio.run(main())
 
 ---
 
-## Validation Pattern
+## Why Cerone Is Different
 
-The current `cerone` SDK exposes validation through `CeroneClient`.
-Validate the intended action before running the local tool or model call you
-control.
+Many vendors talk about agentic governance. Very few have something real you
+can install, run, and demo.
 
-```python
-from cerone import CeroneClient
+Cerone is different because it is:
+- **runtime-real**: it makes live governance decisions in the execution path
+- **lean**: it adds trust and control without demanding a full platform rewrite
+- **developer-usable**: installable, callable, and demoable now
+- **business-aware**: designed to support workflow-aware governance, not just technical checks
 
-client = CeroneClient(
-    base_url="https://aztp-homer-semantics.onrender.com",
-)
-
-certificate = client.create_agent(
-    purpose="Customer data analysis",
-    capabilities=["db_read", "analytics"],
-)
-
-validation = client.validate(
-    agent_id=certificate.agent_id,
-    action="database_query",
-    parameters={"customer_id": "123"},
-)
-print(f"Validation result: {validation}")
-
-# Run your local tool after validation.
-customer = {"customer_id": "123", "name": "Jane Doe"}
-print(customer)
-
-client.close()
-```
-
----
-
-## Tiers
-
-| | Trial | Startup | Pro | Enterprise |
-|---|---|---|---|---|
-| Validations / 30-day window | Hosted evaluation flow | 50,000 | 500,000 | Custom |
-| Agents | Limited | 25 | 250 | Custom |
-| Audit retention | Limited | 30 days | 90 days | 365 days |
-| Model access | BYO | BYO | BYO now, managed later | BYO or managed |
-| Support | — | Email | Priority | Dedicated |
-| Commercial model | Evaluation | Contact us | Contact us | Contact us |
-
-Current commercial motion:
-- evaluate first
-- contact us for provisioned persistent SDK access
+Most of the category still looks theoretical. Cerone is meant to be used.
 
 ---
 
@@ -237,38 +199,10 @@ AZTP Platform (aztp-homer-semantics.onrender.com)  Your LLM Provider
   └─ Audit Logger
 ```
 
----
-
-## Integration Direction
-
-Cerone is being shaped to govern:
-- agent frameworks
-- custom tool-calling runtimes
-- business workflows that need identity, validation, and audit
-
-If you want a specific framework or business-system integration, contact us directly.
+Cerone is distributed by design: a thin SDK on the client side and centralized
+identity, validation, governance, and audit logic on the server side.
 
 ---
-
-## Usage and Quota
-
-```bash
-curl https://aztp-homer-semantics.onrender.com/usage \
-  -H "X-API-Key: sk_startup_..."
-```
-
-This returns current usage, remaining quota, reset date, and tier feature flags.
-
----
-
-## Documentation
-
-- [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
-
-
----
-
-## License
 
 ## License
 
@@ -281,17 +215,18 @@ The SDK source license and the hosted Cerone service terms are separate:
 
 Free trial and hosted commercial terms are subject to change.
 
+Homer Semantics and Anant Dhavale are not liable for losses, damages, business
+interruption, model outputs, workflow outcomes, or downstream actions arising
+from use of the SDK or hosted service. Use Cerone at your own discretion and risk.
 
 ---
 
-## Contact and Feedback
+## Contact
 
 - Website: [homersemantics.com](https://homersemantics.com)
 - Support: [info@homersemantics.com](mailto:info@homersemantics.com)
 - Founder: [anantdhavale@gmail.com](mailto:anantdhavale@gmail.com)
 
-If you are using Cerone, feedback is genuinely useful. POCs and design
-partners are welcome.
-
----
-
+If you are building with agents and want runtime governance that is actually
+usable, reach out.
+```
