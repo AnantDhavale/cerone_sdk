@@ -31,7 +31,7 @@ Free and paid plans, quotas, and pricing are described on our website or order f
 
 ## Free Tier and Trial Usage
 
-The Agent Governance free tier includes up to 25 validations during the first 5 days from account activation ("Trial Period").
+The Agent Governance free tier includes up to 2500 validations.
 
 After the Trial Period ends, continued API usage may require an active paid plan or may be subject to reduced or zero quota, at Agent Governance's discretion unless otherwise stated in a signed commercial agreement.
 
@@ -55,7 +55,7 @@ We may suspend or terminate access immediately for suspected abuse, security ris
 
 ## 9. Disclaimers
 
-THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. 
 
 ## 10. Limitation of Liability
 
