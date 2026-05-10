@@ -1,5 +1,8 @@
 # Cerone — Governance and Zero Trust Runtime for AI Agents
 
+Start immediately with hosted trial access (2500 free validations) from the SDK
+
+
 **Powered by AZTP (Agent Zero Trust Platform)**
 
 Cerone gives every AI agent a cryptographic identity, validates that its
@@ -292,11 +295,3 @@ partners are welcome.
 
 ---
 
-## Disclaimer
-
-Cerone is provided for evaluation and operational governance support, but final
-deployment, enforcement choices, and production use remain your responsibility.
-Use the SDK and hosted service at your own discretion and risk. To the maximum
-extent permitted by law, Homer Semantics and Anant Dhavale are not liable for
-any direct, indirect, incidental, consequential, business, data, model, or
-security losses arising from use, misuse, non-use, or reliance on Cerone.
