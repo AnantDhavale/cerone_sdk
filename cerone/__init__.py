@@ -35,7 +35,7 @@ except ModuleNotFoundError:
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
 # Keep runtime version aligned with package metadata.
-__version__ = "1.1.5"
+__version__ = "1.1.6"
 __author__ = "Homer Semantics"
 EARLY_ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 
@@ -110,7 +110,7 @@ class CeroneClient:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = "https://aztp-homer-semantics.onrender.com",
+        base_url: str = "https://api.homersemantics.com",
         timeout: int = 30,
         max_retries: int = 3,
         enable_cache: bool = False,

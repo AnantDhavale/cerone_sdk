@@ -6,6 +6,7 @@ from agent_governance import (
 )
 from cerone import CeroneClient
 from cerone import ValidationError
+from cerone.cli import main as cli_main
 
 
 def test_cache_key_includes_parameters():
@@ -151,3 +152,42 @@ def test_validate_batch_rejects_empty_payload_locally():
         assert "at least one validation item" in str(exc)
     else:
         raise AssertionError("Expected ValidationError for empty batch")
+
+
+def test_cli_version_flag_prints_version(capsys):
+    rc = cli_main(["--version"])
+    out = capsys.readouterr().out.strip()
+    assert rc == 0
+    assert out == "1.1.6"
+
+
+def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):
+    health_calls = {"count": 0}
+
+    def fake_health(self):
+        health_calls["count"] += 1
+        return {"status": "healthy"}
+
+    def fake_ensure(self):
+        self.api_key = "sk_trial_exampletoken"
+
+    def fake_request(self, method, endpoint, **kwargs):
+        assert method == "GET"
+        assert endpoint == "/usage"
+        return {
+            "remaining": 2400,
+            "trial_stoploss_limit": 2400,
+            "validations_limit": 2500,
+        }
+
+    monkeypatch.setattr(CeroneClient, "health_check", fake_health)
+    monkeypatch.setattr(CeroneClient, "_ensure_api_key", fake_ensure)
+    monkeypatch.setattr(CeroneClient, "_request", fake_request)
+
+    rc = cli_main([])
+    out = capsys.readouterr().out
+
+    assert rc == 0
+    assert health_calls["count"] == 1
+    assert "Hosted trial ready: 2400 validations remaining" in out
+    assert "Trial token: sk_trial_exa..." in out

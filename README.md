@@ -32,6 +32,50 @@ Start immediately from the SDK with **2,500 one-time free validations**.
 pip install cerone
 ```
 
+After install, you can verify connectivity and bootstrap a hosted trial from the terminal:
+
+```bash
+cerone
+```
+
+If your shell does not pick up the installed script immediately, this also works:
+
+```bash
+python3 -m cerone
+```
+
+If you are working from source, clone this repository and install it locally:
+
+```bash
+git clone https://github.com/AnantDhavale/cerone_sdk.git
+cd cerone_sdk
+pip install -e .
+
+```
+
+---
+
+## Access Modes
+
+Cerone now has two usage paths:
+
+1. **Hosted API trial**
+   - `CeroneClient()` can bootstrap an anonymous hosted trial token automatically
+   - the current hosted trial is designed for evaluation and demo use
+   - if the trial is exhausted, contact us for persistent access
+
+2. **Python SDK usage**
+   - use `CeroneClient()` with no key for hosted trial bootstrap
+   - use a provisioned key for persistent POCs or production environments
+
+Hosted signup and support:
+
+- [homersemantics.com](https://homersemantics.com)
+- [info@homersemantics.com](mailto:info@homersemantics.com)
+
+Hosted service terms:
+
+- [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
 ---
 
 ## Quick Start
@@ -44,7 +88,7 @@ from cerone import CeroneClient
 
 async def main():
     client = CeroneClient(
-        base_url="https://aztp-homer-semantics.onrender.com",
+        base_url="https://api.homersemantics.com",
     )
 
     try:
@@ -136,7 +180,7 @@ from cerone import CeroneClient
 
 async def main():
     client = CeroneClient(
-        base_url="https://aztp-homer-semantics.onrender.com",
+        base_url="https://api.homersemantics.com",
     )
     openai_client = openai.AsyncOpenAI(api_key="sk-...")
 
@@ -191,7 +235,7 @@ Your Agent Code
   Cerone SDK  ──────────────────────────────────────────┐
       │                                                  │
       ▼                                                  ▼
-AZTP Platform (aztp-homer-semantics.onrender.com)  Your LLM Provider
+AZTP Platform (api.homersemantics.com)  Your LLM Provider
   ├─ Identity Manager
   ├─ Semantic Validator
   ├─ Trust Engine

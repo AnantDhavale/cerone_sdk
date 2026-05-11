@@ -46,6 +46,9 @@ Homepage    = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 Repository  = "https://github.com/AnantDhavale/cerone_sdk"
 "Bug Tracker" = "https://github.com/AnantDhavale/cerone_sdk/issues"
 
+[project.scripts]
+cerone = "cerone.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["agent_governance*", "cerone*"]
