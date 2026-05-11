@@ -35,13 +35,23 @@ pip install cerone
 After install, you can verify connectivity and bootstrap a hosted trial from the terminal:
 
 ```bash
-cerone
+cerone demo
 ```
 
 If your shell does not pick up the installed script immediately, this also works:
 
 ```bash
-python3 -m cerone
+python3 -m cerone demo
+```
+
+`cerone demo` is the fastest activation path. It bootstraps a hosted trial,
+creates a demo agent, runs one live validation, and prints your remaining trial
+usage.
+
+If you only want a lightweight connectivity and trial bootstrap check, use:
+
+```bash
+cerone
 ```
 
 **macOS note:** if `pip install cerone` succeeds but `cerone` says `command not found`, your Python scripts directory may not be on `PATH` yet. On many macOS installs, this fixes it:
@@ -55,7 +65,7 @@ hash -r
 Then try:
 
 ```bash
-cerone
+cerone demo
 ```
 
 If you are working from source, clone this repository and install it locally:
@@ -93,6 +103,26 @@ Hosted service terms:
 ---
 
 ## Quick Start
+
+Terminal-first activation:
+
+```bash
+cerone demo
+```
+
+Fallback if the installed script is not on `PATH` yet:
+
+```bash
+python3 -m cerone demo
+```
+
+This runs one real hosted-trial flow end to end:
+- bootstraps a trial token
+- creates a demo agent
+- validates one safe action
+- shows the decision, trust score, latency, and remaining trial usage
+
+Python SDK:
 
 ```python
 import asyncio
