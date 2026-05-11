@@ -190,6 +190,6 @@ def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):
     assert rc == 0
     assert health_calls["count"] == 1
     assert "Hosted trial is live." in out
-    assert "2400 validations ready now" in out
-    assert "Trial token: sk_trial_exa..." in out
+    assert "2400 validations included for this hosted trial." in out
+    assert "Trial token issued: sk_trial_exa...oken" in out
     assert "runtime decisions: approved, flagged, rejected" in out

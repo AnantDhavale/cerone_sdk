@@ -14,6 +14,14 @@ def _format_json(value: Any) -> str:
     return json.dumps(value, indent=2, sort_keys=True, default=str)
 
 
+def _mask_token(token: str) -> str:
+    if not token:
+        return "(missing)"
+    if len(token) <= 20:
+        return token
+    return f"{token[:12]}...{token[-4:]}"
+
+
 def _run_doctor(base_url: str) -> int:
     client = CeroneClient(api_key=None, base_url=base_url)
     try:
@@ -28,18 +36,14 @@ def _run_doctor(base_url: str) -> int:
 
         client._ensure_api_key()
         token = client.api_key or ""
-        masked = f"{token[:12]}..." if token else "(missing)"
+        masked = _mask_token(token)
 
         usage = client._request("GET", "/usage")
         remaining = usage.get("remaining")
-        stoploss = usage.get("trial_stoploss_limit")
-        hard_limit = usage.get("validations_limit")
         print("\nHosted trial is live.")
-        print(f"Trial token: {masked}")
-        print(
-            f"{remaining} validations ready now "
-            f"(safety stop {stoploss}, hard cap {hard_limit})."
-        )
+        print(f"Trial token issued: {masked}")
+        print(f"{remaining} validations included for this hosted trial.")
+        print("Cerone auto-stops before the hard cap to protect your account and infrastructure.")
         print("No signup. No model proxy. Your model key stays yours.")
 
         print("\nWhat Cerone gives you:")
