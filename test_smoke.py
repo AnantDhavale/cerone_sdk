@@ -108,8 +108,10 @@ def test_client_bootstraps_trial_token_when_api_key_missing():
     def fake_request(method, url, timeout=None, **kwargs):
         calls.append((method, url, kwargs))
         if url.endswith("/trial/session"):
+            assert kwargs["headers"]["X-Cerone-Client-Intent"] == "sdk_trial_bootstrap_called"
             return _Response(200, {"trial_token": "sk_trial_bootstrap"})
         if url.endswith("/v1/certificates"):
+            assert kwargs["headers"]["X-Cerone-Client-Intent"] == "sdk_create_agent_called"
             return _Response(
                 200,
                 {
@@ -160,7 +162,7 @@ def test_cli_version_flag_prints_version(capsys):
     rc = cli_main(["--version"])
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert out == "1.1.9"
+    assert out == "1.1.10"
 
 
 def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):
@@ -197,3 +199,23 @@ def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):
     assert "# For one action, start with validate(...)." in out
     assert "# Use validate_batch([...]) only when you have two or more items." in out
     assert "runtime decisions: approved, flagged, rejected" in out
+
+
+def test_validate_adds_client_intent_header():
+    client = CeroneClient(api_key="sk_test")
+    seen = {}
+
+    def fake_request(method, endpoint, **kwargs):
+        seen["headers"] = kwargs.get("headers", {})
+        return {
+            "result": "approved",
+            "semantic_alignment": 0.99,
+            "trust_score": 0.99,
+            "violations": [],
+            "timestamp": "2026-03-02T00:00:00Z",
+        }
+
+    client._request = fake_request
+    result = client.validate("agt_1", "process_payment", {"amount": 10})
+    assert result.result == ValidationResult.APPROVED
+    assert seen["headers"]["X-Cerone-Client-Intent"] == "sdk_validate_called"

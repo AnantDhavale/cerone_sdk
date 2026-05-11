@@ -10,6 +10,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import platform
 from pathlib import Path
 import time
 from collections import OrderedDict
@@ -35,7 +36,7 @@ except ModuleNotFoundError:
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
 # Keep runtime version aligned with package metadata.
-__version__ = "1.1.9"
+__version__ = "1.1.10"
 __author__ = "Homer Semantics"
 EARLY_ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 
@@ -147,6 +148,9 @@ class CeroneClient:
             {
                 "Content-Type": "application/json",
                 "User-Agent": f"agent-governance-python-sdk/{__version__}",
+                "X-Cerone-SDK-Version": __version__,
+                "X-Cerone-Platform": platform.system().lower(),
+                "X-Cerone-Python-Version": platform.python_version(),
             }
         )
         if api_key:
@@ -165,7 +169,11 @@ class CeroneClient:
     ) -> AgentCertificate:
         """Create a new agent with cryptographic identity."""
         payload = {"purpose": purpose, "capabilities": capabilities or []}
-        response = self._request("POST", "/v1/certificates", json=payload)
+        response = self._request(
+            "POST",
+            "/v1/certificates",
+            **self._intent_kwargs("sdk_create_agent_called", json=payload),
+        )
 
         # AZTP canonical response:
         # {
@@ -221,7 +229,11 @@ class CeroneClient:
 
         start_time = time.time()
         payload = {"agent_id": normalized_agent_id, "action": action_payload}
-        response = self._request("POST", "/v1/validate", json=payload)
+        response = self._request(
+            "POST",
+            "/v1/validate",
+            **self._intent_kwargs("sdk_validate_called", json=payload),
+        )
         latency_ms = int((time.time() - start_time) * 1000)
 
         result_value = str(response.get("result", "error")).lower()
@@ -271,7 +283,11 @@ class CeroneClient:
         normalized_agent_id = self._normalize_agent_id(agent_id)
         action_payload = self._normalize_action_payload(action, parameters)
         payload = {"agent_id": normalized_agent_id, "action": action_payload}
-        data = await self._request_async("POST", "/v1/validate", json=payload)
+        data = await self._request_async(
+            "POST",
+            "/v1/validate",
+            **self._intent_kwargs("sdk_validate_called", json=payload),
+        )
         latency_ms = int((time.time() - start_time) * 1000)
 
         result_value = str(data.get("result", "error")).lower()
@@ -309,7 +325,9 @@ class CeroneClient:
             })
 
         response = self._request(
-            "POST", "/v1/validate/batch", json={"validations": requests_payload}
+            "POST",
+            "/v1/validate/batch",
+            **self._intent_kwargs("sdk_validate_batch_called", json={"validations": requests_payload}),
         )
 
         return [
@@ -333,7 +351,11 @@ class CeroneClient:
     def get_trust_score(self, agent_id: str) -> Dict[str, Any]:
         """Get current trust score and history for an agent."""
         normalized_agent_id = self._normalize_agent_id(agent_id)
-        return self._request("GET", f"/v1/trust/{normalized_agent_id}")
+        return self._request(
+            "GET",
+            f"/v1/trust/{normalized_agent_id}",
+            **self._intent_kwargs("sdk_get_trust_score_called"),
+        )
 
     @staticmethod
     def _parse_validation_result(value: Any) -> ValidationResult:
@@ -365,7 +387,11 @@ class CeroneClient:
         normalized_agent_id = self._normalize_agent_id(agent_id)
         # F4: backend returns {"events": [...], ...} — read the correct key
         params = {"limit": limit, "offset": offset}
-        response = self._request("GET", f"/v1/audit/agent/{normalized_agent_id}", params=params)
+        response = self._request(
+            "GET",
+            f"/v1/audit/agent/{normalized_agent_id}",
+            **self._intent_kwargs("sdk_get_audit_log_called", params=params),
+        )
         return response["events"]
 
     # ------------------------------------------------------------------
@@ -457,6 +483,7 @@ class CeroneClient:
             f"{self.base_url}/trial/session",
             timeout=self.timeout,
             json={},
+            headers={"X-Cerone-Client-Intent": "sdk_trial_bootstrap_called"},
         )
         self._raise_for_status(response.status_code, response.text)
         payload = response.json()
@@ -472,7 +499,12 @@ class CeroneClient:
             self._apply_api_key(cached)
             return
         session = await self._get_async_session()
-        async with session.request("POST", f"{self.base_url}/trial/session", json={}) as response:
+        async with session.request(
+            "POST",
+            f"{self.base_url}/trial/session",
+            json={},
+            headers={"X-Cerone-Client-Intent": "sdk_trial_bootstrap_called"},
+        ) as response:
             body_text = await response.text()
             self._raise_for_status(response.status, body_text)
             payload = json.loads(body_text)
@@ -511,6 +543,13 @@ class CeroneClient:
 
     def _can_retry(self, method: str) -> bool:
         return method.upper() in self._IDEMPOTENT_METHODS or self.retry_non_idempotent
+
+    @staticmethod
+    def _intent_kwargs(intent: str, **kwargs: Any) -> Dict[str, Any]:
+        headers = dict(kwargs.pop("headers", {}) or {})
+        headers["X-Cerone-Client-Intent"] = intent
+        kwargs["headers"] = headers
+        return kwargs
 
     @staticmethod
     def _raise_for_status(status_code: int, body_text: str) -> None:
