@@ -197,8 +197,75 @@ def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):
     assert "2400 validations included for this hosted trial." in out
     assert "Trial token issued: sk_trial_exa...oken" in out
     assert "# For one action, start with validate(...)." in out
+    assert "client.close()" in out
     assert "# Use validate_batch([...]) only when you have two or more items." in out
     assert "runtime decisions: approved, flagged, rejected" in out
+
+
+def test_cli_demo_runs_live_activation_flow(monkeypatch, capsys):
+    calls = {"ensure": 0, "create": 0, "validate": 0, "usage": 0}
+
+    def fake_ensure(self):
+        calls["ensure"] += 1
+        self.api_key = "sk_trial_exampletoken"
+
+    def fake_create(self, purpose, capabilities):
+        calls["create"] += 1
+        assert purpose == "billing_support"
+        assert capabilities == ["db_read", "billing_api"]
+        return type(
+            "AgentCertificate",
+            (),
+            {
+                "agent_id": "agt_demo_123",
+                "purpose": purpose,
+                "capabilities": capabilities,
+                "trust_score": 0.98,
+                "signature": "sig",
+                "created_at": "2026-05-12T00:00:00Z",
+            },
+        )()
+
+    def fake_validate(self, agent_id, action, parameters):
+        calls["validate"] += 1
+        assert agent_id == "agt_demo_123"
+        assert action == "database_query"
+        assert parameters == {"customer_id": "123"}
+        return type(
+            "CeroneResponse",
+            (),
+            {
+                "result": ValidationResult.APPROVED,
+                "trust_score": 0.97,
+                "latency_ms": 43,
+            },
+        )()
+
+    def fake_request(self, method, endpoint, **kwargs):
+        calls["usage"] += 1
+        assert method == "GET"
+        assert endpoint == "/usage"
+        return {"remaining": 2399}
+
+    monkeypatch.setattr(CeroneClient, "_ensure_api_key", fake_ensure)
+    monkeypatch.setattr(CeroneClient, "create_agent", fake_create)
+    monkeypatch.setattr(CeroneClient, "validate", fake_validate)
+    monkeypatch.setattr(CeroneClient, "_request", fake_request)
+
+    rc = cli_main(["demo"])
+    out = capsys.readouterr().out
+
+    assert rc == 0
+    assert calls == {"ensure": 1, "create": 1, "validate": 1, "usage": 1}
+    assert "Running a live validation against your trial..." in out
+    assert '✓ Agent created: "Demo Agent" (billing_support)' in out
+    assert "✓ Action validated: database_query" in out
+    assert "Result: approved" in out
+    assert "Trust score: 0.97" in out
+    assert "Latency: 43ms" in out
+    assert "Your trial is working. 2399 validations remaining." in out
+    assert 'agent = client.create_agent("your-agent", ["your_permissions"])' in out
+    assert 'result = client.validate(agent.agent_id, "your_action", {})' in out
 
 
 def test_validate_adds_client_intent_header():
