@@ -55,7 +55,9 @@ def _run_doctor(base_url: str) -> int:
         print("from cerone import CeroneClient")
         print("client = CeroneClient()")
         print('agent = client.create_agent("Customer billing support", ["db_read", "billing_api"])')
+        print("# For one action, start with validate(...).")
         print('result = client.validate(agent.agent_id, "database_query", {"customer_id": "123"})')
+        print("# Use validate_batch([...]) only when you have two or more items.")
         print('print(result.result, result.trust_score)')
         return 0
     except ValidationError as exc:

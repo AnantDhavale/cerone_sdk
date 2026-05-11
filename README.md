@@ -129,6 +129,68 @@ asyncio.run(main())
 
 ---
 
+## Single Action vs Batch Validation
+
+Start with `validate(...)` for a single action. Use `validate_batch([...])` only
+when you already have two or more validation items to send together.
+
+Single action:
+
+```python
+from cerone import CeroneClient
+
+client = CeroneClient()
+
+agent = client.create_agent(
+    purpose="Customer billing support",
+    capabilities=["db_read", "billing_api"],
+)
+
+result = client.validate(
+    agent.agent_id,
+    "database_query",
+    {"table": "billing", "customer_id": "123"},
+)
+
+print(result.result, result.trust_score)
+client.close()
+```
+
+Batch validation:
+
+```python
+from cerone import CeroneClient
+
+client = CeroneClient()
+
+results = client.validate_batch([
+    {
+        "agent_id": "agt_123",
+        "action": {
+            "tool": "database_query",
+            "parameters": {"table": "billing", "customer_id": "123"},
+        },
+    },
+    {
+        "agent_id": "agt_456",
+        "action": {
+            "tool": "refund_lookup",
+            "parameters": {"refund_id": "rf_789"},
+        },
+    },
+])
+
+for item in results:
+    print(item.agent_id, item.result, item.trust_score)
+
+client.close()
+```
+
+If you call `validate_batch([])`, the SDK raises a local error before making a
+request.
+
+---
+
 ## What Cerone Does
 
 Cerone is a runtime trust and governance layer for AI agents.

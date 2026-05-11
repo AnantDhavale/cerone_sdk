@@ -35,7 +35,7 @@ except ModuleNotFoundError:
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
 # Keep runtime version aligned with package metadata.
-__version__ = "1.1.8"
+__version__ = "1.1.9"
 __author__ = "Homer Semantics"
 EARLY_ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 
@@ -295,7 +295,10 @@ class CeroneClient:
             action     (dict with ``tool`` and ``parameters`` keys)
         """
         if not validations:
-            raise ValidationError("validate_batch requires at least one validation item")
+            raise ValidationError(
+                "validate_batch requires at least one validation item. "
+                "Use validate(...) for a single action, or validate_batch([...]) with one or more items."
+            )
         # F3: build properly shaped ValidationRequest objects for the backend
         requests_payload = []
         for v in validations:

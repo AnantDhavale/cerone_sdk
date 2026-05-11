@@ -11,7 +11,7 @@ os.chdir(ROOT)
 
 setup(
     name="cerone",
-    version="1.1.8",
+    version="1.1.9",
     author="Anant Dhavale for Homer Semantics",
     author_email="info@homersemantics.com",
     description="Zero Trust Security for AI Agents",

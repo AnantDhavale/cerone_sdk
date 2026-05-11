@@ -151,6 +151,7 @@ def test_validate_batch_rejects_empty_payload_locally():
         client.validate_batch([])
     except ValidationError as exc:
         assert "at least one validation item" in str(exc)
+        assert "Use validate(...)" in str(exc)
     else:
         raise AssertionError("Expected ValidationError for empty batch")
 
@@ -159,7 +160,7 @@ def test_cli_version_flag_prints_version(capsys):
     rc = cli_main(["--version"])
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert out == "1.1.8"
+    assert out == "1.1.9"
 
 
 def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):
@@ -193,4 +194,6 @@ def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):
     assert "Hosted trial is live." in out
     assert "2400 validations included for this hosted trial." in out
     assert "Trial token issued: sk_trial_exa...oken" in out
+    assert "# For one action, start with validate(...)." in out
+    assert "# Use validate_batch([...]) only when you have two or more items." in out
     assert "runtime decisions: approved, flagged, rejected" in out
