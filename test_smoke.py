@@ -162,7 +162,7 @@ def test_cli_version_flag_prints_version(capsys):
     rc = cli_main(["--version"])
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert out == "1.1.9"
+    assert out == "1.1.10"
 
 
 def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):
