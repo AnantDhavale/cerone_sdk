@@ -17,11 +17,11 @@ def _format_json(value: Any) -> str:
 def _run_doctor(base_url: str) -> int:
     client = CeroneClient(api_key=None, base_url=base_url)
     try:
-        print(f"Cerone {__version__}")
-        print(f"Base URL: {client.base_url}")
-
         health = client.health_check()
         status = str(health.get("status", "unknown"))
+        print(f"Cerone {__version__}")
+        print("Runtime governance for AI agents.")
+        print(f"API: {client.base_url}")
         print(f"Health: {status}")
         if health and status != "healthy":
             print(_format_json(health))
@@ -29,23 +29,30 @@ def _run_doctor(base_url: str) -> int:
         client._ensure_api_key()
         token = client.api_key or ""
         masked = f"{token[:12]}..." if token else "(missing)"
-        print(f"Trial token: {masked}")
 
         usage = client._request("GET", "/usage")
         remaining = usage.get("remaining")
         stoploss = usage.get("trial_stoploss_limit")
         hard_limit = usage.get("validations_limit")
+        print("\nHosted trial is live.")
+        print(f"Trial token: {masked}")
         print(
-            "Hosted trial ready: "
-            f"{remaining} validations remaining "
-            f"(stoploss {stoploss}, hard cap {hard_limit})."
+            f"{remaining} validations ready now "
+            f"(safety stop {stoploss}, hard cap {hard_limit})."
         )
+        print("No signup. No model proxy. Your model key stays yours.")
 
-        print("\nNext step:")
+        print("\nWhat Cerone gives you:")
+        print("- cryptographic agent identity")
+        print("- runtime decisions: approved, flagged, rejected")
+        print("- audit and trust signals around each action")
+
+        print("\nTry this next:")
         print("from cerone import CeroneClient")
         print("client = CeroneClient()")
         print('agent = client.create_agent("Customer billing support", ["db_read", "billing_api"])')
         print('result = client.validate(agent.agent_id, "database_query", {"customer_id": "123"})')
+        print('print(result.result, result.trust_score)')
         return 0
     except ValidationError as exc:
         print(f"Cerone trial bootstrap failed: {exc}", file=sys.stderr)
