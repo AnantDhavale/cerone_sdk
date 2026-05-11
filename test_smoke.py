@@ -92,6 +92,7 @@ def test_legacy_cerone_import_remains_available():
 def test_client_bootstraps_trial_token_when_api_key_missing():
     client = CeroneClient(api_key=None)
     client._persist_trial_token = lambda token: None
+    client._load_cached_trial_token = lambda: None
 
     calls = []
 
@@ -158,7 +159,7 @@ def test_cli_version_flag_prints_version(capsys):
     rc = cli_main(["--version"])
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert out == "1.1.6"
+    assert out == "1.1.8"
 
 
 def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):

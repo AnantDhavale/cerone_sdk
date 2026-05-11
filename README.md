@@ -44,6 +44,20 @@ If your shell does not pick up the installed script immediately, this also works
 python3 -m cerone
 ```
 
+**macOS note:** if `pip install cerone` succeeds but `cerone` says `command not found`, your Python scripts directory may not be on `PATH` yet. On many macOS installs, this fixes it:
+
+```bash
+echo 'export PATH="/Library/Frameworks/Python.framework/Versions/3.10/bin:$PATH"' >> ~/.zprofile
+source ~/.zprofile
+hash -r
+```
+
+Then try:
+
+```bash
+cerone
+```
+
 If you are working from source, clone this repository and install it locally:
 
 ```bash
