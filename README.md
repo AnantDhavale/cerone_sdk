@@ -102,7 +102,8 @@ Hosted service terms:
 - [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
 ---
 
-Privacy Terms - see privacy.md 
+- [PRIVACY.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/PRIVACY.md)
+- 
 
 ## Quick Start
 
