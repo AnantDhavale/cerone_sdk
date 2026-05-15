@@ -267,9 +267,9 @@ Support and contact:
 - [homersemantics.com](https://homersemantics.com)
 - [info@homersemantics.com](mailto:info@homersemantics.com)
 
-Hosted service terms:
+Hosted service & privacy terms:
 - [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
-
+  [PRIVACY.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/PRIVACY.md)
 ---
 
 ## Bring Your Own Model Key
