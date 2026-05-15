@@ -100,9 +100,9 @@ Hosted signup and support:
 Hosted service & privacy terms:
 
 - [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
-
 - [PRIVACY.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/PRIVACY.md)
-  ---
+
+---
 
 ## Quick Start
 
