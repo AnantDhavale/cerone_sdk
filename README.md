@@ -97,13 +97,12 @@ Hosted signup and support:
 - [homersemantics.com](https://homersemantics.com)
 - [info@homersemantics.com](mailto:info@homersemantics.com)
 
-Hosted service terms:
+Hosted service & privacy terms:
 
 - [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
----
 
 - [PRIVACY.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/PRIVACY.md)
-- 
+  ---
 
 ## Quick Start
 
@@ -381,3 +380,5 @@ from use of the SDK or hosted service. Use Cerone at your own discretion and ris
 
 If you are building with agents and want runtime governance that is actually
 usable, reach out.
+
+By downloading this SDK user acknowledge the terms of service and privacy as mentioned here. 
