@@ -102,6 +102,8 @@ Hosted service terms:
 - [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
 ---
 
+Privacy Terms - see privacy.md 
+
 ## Quick Start
 
 Terminal-first activation:
