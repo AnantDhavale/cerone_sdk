@@ -1,4 +1,4 @@
-"""Setup configuration for the Agent Governance Python SDK."""
+"""Setup configuration for the Cerone Python SDK."""
 
 import os
 from pathlib import Path
@@ -11,7 +11,7 @@ os.chdir(ROOT)
 
 setup(
     name="cerone",
-    version="1.1.12",
+    version="1.1.13",
     author="Anant Dhavale for Homer Semantics",
     author_email="info@homersemantics.com",
     description="Zero Trust Security for AI Agents",

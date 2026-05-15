@@ -162,7 +162,17 @@ def test_cli_version_flag_prints_version(capsys):
     rc = cli_main(["--version"])
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert out == "1.1.11"
+    assert out == "1.1.13"
+
+
+def test_client_uses_cerone_branded_runtime_headers():
+    client = CeroneClient(api_key="sk_test")
+    try:
+        assert client._session.headers["User-Agent"] == "cerone-python-sdk/1.1.13"
+        assert client._session.headers["X-Cerone-SDK-Name"] == "cerone-python-sdk"
+        assert client._session.headers["X-Cerone-SDK-Version"] == "1.1.13"
+    finally:
+        client.close()
 
 
 def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):

@@ -1,4 +1,4 @@
-"""Public interface for the Agent Governance Python SDK."""
+"""Backward-compatible alias for the Cerone Python SDK."""
 
 from cerone import (
     AgentCertificate,

@@ -1,10 +1,4 @@
-"""
-Backward-compatible import path for the Agent Governance Python SDK.
-
-New integrations should prefer:
-    pip install agent-governance
-    from agent_governance import AgentGovernanceClient
-"""
+"""Cerone Python SDK."""
 
 import asyncio
 import hashlib
@@ -36,9 +30,10 @@ except ModuleNotFoundError:
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
 # Keep runtime version aligned with package metadata.
-__version__ = "1.1.12"
+__version__ = "1.1.13"
 __author__ = "Homer Semantics"
-EARLY_ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
+ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
+SDK_NAME = "cerone-python-sdk"
 
 logger = logging.getLogger(__name__)
 F = TypeVar("F", bound=Callable[..., Any])
@@ -147,7 +142,8 @@ class CeroneClient:
         self._session.headers.update(
             {
                 "Content-Type": "application/json",
-                "User-Agent": f"agent-governance-python-sdk/{__version__}",
+                "User-Agent": f"{SDK_NAME}/{__version__}",
+                "X-Cerone-SDK-Name": SDK_NAME,
                 "X-Cerone-SDK-Version": __version__,
                 "X-Cerone-Platform": platform.system().lower(),
                 "X-Cerone-Python-Version": platform.python_version(),
@@ -557,11 +553,11 @@ class CeroneClient:
             return
         if status_code == 401:
             raise AuthenticationError(
-                f"Invalid or missing API key. Request early access at {EARLY_ACCESS_URL}"
+                f"Invalid or missing API key. See access options at {ACCESS_URL}"
             )
         if status_code == 429:
             raise RateLimitError(
-                f"Rate limit exceeded. Upgrade your plan at {EARLY_ACCESS_URL}"
+                f"Rate limit exceeded. See plan options at {ACCESS_URL}"
             )
         if status_code >= 500:
             raise _ServerError(f"Server error: {status_code}")
