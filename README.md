@@ -248,6 +248,45 @@ It:
 
 ---
 
+## Runtime Policy and Containment
+
+Cerone is also evolving into a stronger runtime policy layer, not just an
+identity and semantic-alignment layer.
+
+The current direction includes runtime detections for patterns such as:
+
+- prompt injection
+- instruction override
+- role manipulation
+- policy evasion
+- secret harvesting
+- data exfiltration
+- obfuscation and encoded payload tricks
+
+These checks are intended to complement semantic validation:
+
+- semantic alignment asks whether the action fits the declared purpose
+- runtime policy checks ask whether the action payload itself looks unsafe,
+  manipulative, evasive, or exfiltration-oriented
+
+Cerone also has an operator-controlled containment direction:
+
+- manual kill switch support
+- soft containment
+- hard containment
+
+Important:
+- detection does not automatically activate containment by default
+- the intended default behavior is operator-controlled, manual activation
+
+For integrators, the practical rule remains simple:
+
+- `approved` -> continue
+- `flagged` -> review or warn according to your app policy
+- `rejected` -> block execution
+
+---
+
 ## Trial and Access
 
 Cerone currently has two usage paths:
@@ -352,6 +391,37 @@ AZTP Platform (api.homersemantics.com)  Your LLM Provider
 
 Cerone is distributed by design: a thin SDK on the client side and centralized
 identity, validation, governance, and audit logic on the server side.
+
+---
+
+## Other SDKs
+
+Cerone now has more than one SDK surface.
+
+Current SDKs:
+
+- **Python SDK**
+  - package: `cerone`
+  - repo: [github.com/AnantDhavale/cerone_sdk](https://github.com/AnantDhavale/cerone_sdk)
+
+- **Node / JavaScript SDK**
+  - package: `agent-governance`
+  - repo: [github.com/AnantDhavale/agent-governance-js](https://github.com/AnantDhavale/agent-governance-js)
+
+The product name is **Cerone** across both SDKs.  
+The npm package uses the name `agent-governance` for discoverability.
+
+If you are building in Python:
+
+```bash
+pip install cerone
+```
+
+If you are building in Node:
+
+```bash
+npm install agent-governance
+```
 
 ---
 
