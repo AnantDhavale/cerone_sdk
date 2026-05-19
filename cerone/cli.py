@@ -38,7 +38,7 @@ def _run_doctor(base_url: str) -> int:
         token = client.api_key or ""
         masked = _mask_token(token)
 
-        usage = client._request("GET", "/usage")
+        usage = client._request("GET", "/usage", _allow_private_request=True)
         remaining = usage.get("remaining")
         print("\nHosted trial is live.")
         print(f"Trial token issued: {masked}")
@@ -83,7 +83,7 @@ def _run_demo(base_url: str) -> int:
             "database_query",
             {"customer_id": "123"},
         )
-        usage = client._request("GET", "/usage")
+        usage = client._request("GET", "/usage", _allow_private_request=True)
         remaining = usage.get("remaining")
 
         print('✓ Agent created: "Demo Agent" (billing_support)')

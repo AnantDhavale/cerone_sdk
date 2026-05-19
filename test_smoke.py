@@ -1,3 +1,5 @@
+import warnings
+
 from agent_governance import (
     AgentGovernanceClient,
     AgentGovernanceResponse,
@@ -167,7 +169,9 @@ def test_low_level_request_rejects_empty_batch_payload_locally(monkeypatch):
     monkeypatch.setattr(client._session, "request", fail_request)
 
     try:
-        client._request("POST", "/v1/validate/batch", json={"validations": []})
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            client._request("POST", "/v1/validate/batch", json={"validations": []})
     except ValidationError as exc:
         assert "at least one validation item" in str(exc)
         assert "Use validate(...)" in str(exc)
@@ -177,19 +181,42 @@ def test_low_level_request_rejects_empty_batch_payload_locally(monkeypatch):
         client.close()
 
 
+def test_low_level_request_emits_deprecation_warning(monkeypatch):
+    client = CeroneClient(api_key="sk_test")
+    try:
+        class _Response:
+            status_code = 200
+            text = '{"ok": true}'
+
+            @staticmethod
+            def json():
+                return {"ok": True}
+
+        monkeypatch.setattr(client._session, "request", lambda *args, **kwargs: _Response())
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            response = client._request("GET", "/usage")
+
+        assert response == {"ok": True}
+        assert any("_request() is a private method" in str(item.message) for item in caught)
+    finally:
+        client.close()
+
+
 def test_cli_version_flag_prints_version(capsys):
     rc = cli_main(["--version"])
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert out == "1.1.13"
+    assert out == "1.1.14"
 
 
 def test_client_uses_cerone_branded_runtime_headers():
     client = CeroneClient(api_key="sk_test")
     try:
-        assert client._session.headers["User-Agent"] == "cerone-python-sdk/1.1.13"
+        assert client._session.headers["User-Agent"] == "cerone-python-sdk/1.1.14"
         assert client._session.headers["X-Cerone-SDK-Name"] == "cerone-python-sdk"
-        assert client._session.headers["X-Cerone-SDK-Version"] == "1.1.13"
+        assert client._session.headers["X-Cerone-SDK-Version"] == "1.1.14"
     finally:
         client.close()
 

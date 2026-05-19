@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 import platform
+import warnings
 from pathlib import Path
 import time
 from collections import OrderedDict
@@ -30,7 +31,7 @@ except ModuleNotFoundError:
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
 # Keep runtime version aligned with package metadata.
-__version__ = "1.1.13"
+__version__ = "1.1.14"
 __author__ = "Homer Semantics"
 ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 SDK_NAME = "cerone-python-sdk"
@@ -168,7 +169,7 @@ class CeroneClient:
         response = self._request(
             "POST",
             "/v1/certificates",
-            **self._intent_kwargs("sdk_create_agent_called", json=payload),
+            **self._intent_kwargs("sdk_create_agent_called", json=payload, _allow_private_request=True),
         )
 
         # AZTP canonical response:
@@ -228,7 +229,7 @@ class CeroneClient:
         response = self._request(
             "POST",
             "/v1/validate",
-            **self._intent_kwargs("sdk_validate_called", json=payload),
+            **self._intent_kwargs("sdk_validate_called", json=payload, _allow_private_request=True),
         )
         latency_ms = int((time.time() - start_time) * 1000)
 
@@ -282,7 +283,7 @@ class CeroneClient:
         data = await self._request_async(
             "POST",
             "/v1/validate",
-            **self._intent_kwargs("sdk_validate_called", json=payload),
+            **self._intent_kwargs("sdk_validate_called", json=payload, _allow_private_request=True),
         )
         latency_ms = int((time.time() - start_time) * 1000)
 
@@ -323,7 +324,11 @@ class CeroneClient:
         response = self._request(
             "POST",
             "/v1/validate/batch",
-            **self._intent_kwargs("sdk_validate_batch_called", json={"validations": requests_payload}),
+            **self._intent_kwargs(
+                "sdk_validate_batch_called",
+                json={"validations": requests_payload},
+                _allow_private_request=True,
+            ),
         )
 
         return [
@@ -350,7 +355,7 @@ class CeroneClient:
         return self._request(
             "GET",
             f"/v1/trust/{normalized_agent_id}",
-            **self._intent_kwargs("sdk_get_trust_score_called"),
+            **self._intent_kwargs("sdk_get_trust_score_called", _allow_private_request=True),
         )
 
     @staticmethod
@@ -386,7 +391,7 @@ class CeroneClient:
         response = self._request(
             "GET",
             f"/v1/audit/agent/{normalized_agent_id}",
-            **self._intent_kwargs("sdk_get_audit_log_called", params=params),
+            **self._intent_kwargs("sdk_get_audit_log_called", params=params, _allow_private_request=True),
         )
         return response["events"]
 
@@ -577,10 +582,24 @@ class CeroneClient:
                 "Use validate(...) for a single action, or validate_batch([...]) with one or more items."
             )
 
+    @staticmethod
+    def _warn_private_request_usage(endpoint: str, allow_private_request: bool) -> None:
+        if allow_private_request:
+            return
+        if not endpoint.startswith("/"):
+            return
+        warnings.warn(
+            "_request() is a private method. Use the public SDK methods instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Dict[str, Any]:
         """Internal request with bounded retries."""
+        allow_private_request = bool(kwargs.pop("_allow_private_request", False))
         if endpoint != "/trial/session":
             self._ensure_api_key()
+        self._warn_private_request_usage(endpoint, allow_private_request)
         self._guard_empty_batch_request(endpoint, kwargs)
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
@@ -637,8 +656,10 @@ class CeroneClient:
 
     async def _request_async(self, method: str, endpoint: str, **kwargs: Any) -> Dict[str, Any]:
         """Async request helper with bounded retries."""
+        allow_private_request = bool(kwargs.pop("_allow_private_request", False))
         if endpoint != "/trial/session":
             await self._ensure_api_key_async()
+        self._warn_private_request_usage(endpoint, allow_private_request)
         self._guard_empty_batch_request(endpoint, kwargs)
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
