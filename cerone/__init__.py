@@ -563,10 +563,25 @@ class CeroneClient:
             raise _ServerError(f"Server error: {status_code}")
         raise _ClientRequestError(f"Request failed: {status_code} - {body_text}")
 
+    @staticmethod
+    def _guard_empty_batch_request(endpoint: str, kwargs: Dict[str, Any]) -> None:
+        if endpoint != "/v1/validate/batch":
+            return
+        payload = kwargs.get("json")
+        if not isinstance(payload, dict):
+            return
+        validations = payload.get("validations")
+        if validations == []:
+            raise ValidationError(
+                "validate_batch requires at least one validation item. "
+                "Use validate(...) for a single action, or validate_batch([...]) with one or more items."
+            )
+
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Dict[str, Any]:
         """Internal request with bounded retries."""
         if endpoint != "/trial/session":
             self._ensure_api_key()
+        self._guard_empty_batch_request(endpoint, kwargs)
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
         attempts = (self.max_retries + 1) if can_retry else 1
@@ -624,6 +639,7 @@ class CeroneClient:
         """Async request helper with bounded retries."""
         if endpoint != "/trial/session":
             await self._ensure_api_key_async()
+        self._guard_empty_batch_request(endpoint, kwargs)
         url = f"{self.base_url}{endpoint}"
         can_retry = self._can_retry(method)
         attempts = (self.max_retries + 1) if can_retry else 1

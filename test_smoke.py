@@ -158,6 +158,25 @@ def test_validate_batch_rejects_empty_payload_locally():
         raise AssertionError("Expected ValidationError for empty batch")
 
 
+def test_low_level_request_rejects_empty_batch_payload_locally(monkeypatch):
+    client = CeroneClient(api_key="sk_test")
+
+    def fail_request(*args, **kwargs):
+        raise AssertionError("Network call should not happen for empty batch payload")
+
+    monkeypatch.setattr(client._session, "request", fail_request)
+
+    try:
+        client._request("POST", "/v1/validate/batch", json={"validations": []})
+    except ValidationError as exc:
+        assert "at least one validation item" in str(exc)
+        assert "Use validate(...)" in str(exc)
+    else:
+        raise AssertionError("Expected ValidationError for low-level empty batch request")
+    finally:
+        client.close()
+
+
 def test_cli_version_flag_prints_version(capsys):
     rc = cli_main(["--version"])
     out = capsys.readouterr().out.strip()
