@@ -31,8 +31,8 @@ except ModuleNotFoundError:
     _AIOHTTP_CLIENT_ERROR = _AiohttpClientError
 
 # Keep runtime version aligned with package metadata.
-__version__ = "1.1.14"
-__author__ = "Homer Semantics"
+__version__ = "1.1.15"
+__author__ = "Anant Dhavale"
 ACCESS_URL = "https://www.homersemantics.com/ai-agent-governance-and-oauth"
 SDK_NAME = "cerone-python-sdk"
 
