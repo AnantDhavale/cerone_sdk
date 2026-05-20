@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cerone"
-version = "1.1.15"
+version = "1.1.16"
 description = "Zero Trust Security for AI Agents"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { file = "LICENSE" }
 authors = [
-    { name = "Homer Semantics", email = "info@homersemantics.com" }
+    { name = "Anant Dhavale", email = "info@homersemantics.com" }
 ]
 keywords = ["ai", "agents", "security", "zero-trust", "validation", "llm"]
 classifiers = [
