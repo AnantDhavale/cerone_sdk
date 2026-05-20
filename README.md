@@ -1,9 +1,10 @@
-# Cerone — Runtime Governance for AI Agents
+# Cerone — Runtime Governance and Security for AI Agents
 
-**Install it. Create an agent. Validate a real action. See a live governance decision in minutes.**
+**Install it. Create an agent. Validate a real action. See a live runtime decision in minutes.**
 
 Cerone gives every AI agent a cryptographic identity, validates intended actions
-before execution, and returns explicit runtime decisions:
+before execution, helps detect unsafe or evasive action patterns, and returns
+explicit runtime decisions:
 
 - `approved`
 - `flagged`
@@ -11,7 +12,8 @@ before execution, and returns explicit runtime decisions:
 
 Start immediately from the SDK with **2,500 one-time free validations**.
 
-**Powered by AZTP (Agent Zero Trust Platform)**
+Cerone is a thin runtime layer: keep your own model stack, add identity,
+validation, security checks, containment, and auditability around agent actions.
 
 ---
 
@@ -19,8 +21,10 @@ Start immediately from the SDK with **2,500 one-time free validations**.
 
 - start immediately with hosted trial access from the SDK
 - validate agent actions before they execute
+- add runtime security checks without replacing the rest of your stack
+- detect risky action patterns like injection, exfiltration, or policy override
+- contain risky agents with explicit runtime decisions and operator controls
 - keep your own OpenAI, Anthropic, or other model key
-- add runtime governance without replacing the rest of your stack
 - get real decisions instead of vague policy claims
 - use a lean trust layer instead of a heavy control-plane rewrite
 
@@ -225,12 +229,13 @@ request.
 
 ## What Cerone Does
 
-Cerone is a runtime trust and governance layer for AI agents.
+Cerone is a runtime governance, trust, and security layer for AI agents.
 
 It:
 - gives each agent a cryptographic identity
 - validates intended actions against declared purpose and capability
 - returns explicit runtime decisions before execution
+- helps detect unsafe, manipulative, or exfiltration-oriented action payloads
 - records audit and trust signals across agent activity
 - preserves lineage and delegation boundaries where applicable
 
@@ -245,6 +250,38 @@ It:
 | **Trust scoring** | Behavioural drift over time |
 | **Capability scope** | Agents calling tools they were never granted |
 | **Lineage integrity** | Unauthorized parent-child relationships |
+
+---
+
+## Why Security Teams Care
+
+Cerone is not just a governance layer. It is also a runtime security layer for
+agent actions.
+
+That means Cerone can help with:
+
+- interception before execution, not just detection after the fact
+- context-aware validation of whether an action fits what this agent is
+  supposed to be doing
+- zero-trust treatment of agent tool calls until they are validated
+- injection and instruction-override resistance
+- secret harvesting and exfiltration detection
+- explicit allow / flag / reject decisions instead of silent risk
+- containment through manual kill switch and lineage-aware controls
+- runtime audit trails for incident review and operator oversight
+
+The goal is not to replace your whole security stack. The goal is to give AI
+agents a thin runtime control and security layer exactly where agent misuse
+happens: at action time.
+
+In practice, Cerone's security model is:
+
+- **interception before execution**: validate intended tool use before the tool
+  runs
+- **context-aware validation**: check whether an action is consistent with the
+  agent's declared purpose, capability, and runtime context
+- **zero-trust for agents**: do not assume a previously well-behaved agent
+  should automatically be trusted on its next action
 
 ---
 
@@ -307,7 +344,7 @@ Support and contact:
 
 Hosted service & privacy terms:
 - [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
-  [PRIVACY.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/PRIVACY.md)
+- [PRIVACY.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/PRIVACY.md)
 ---
 
 ## Bring Your Own Model Key
@@ -365,6 +402,7 @@ can install, run, and demo.
 
 Cerone is different because it is:
 - **runtime-real**: it makes live governance decisions in the execution path
+- **security-relevant**: it helps catch misuse before tools execute
 - **lean**: it adds trust and control without demanding a full platform rewrite
 - **developer-usable**: installable, callable, and demoable now
 - **business-aware**: designed to support workflow-aware governance, not just technical checks
