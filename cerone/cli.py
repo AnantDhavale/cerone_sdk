@@ -54,7 +54,7 @@ def _run_doctor(base_url: str) -> int:
         print("\nTry this next:")
         print("from cerone import CeroneClient")
         print("client = CeroneClient()")
-        print('agent = client.create_agent("Customer billing support", ["db_read", "billing_api"])')
+        print('agent = client.create_agent("Answer customer billing questions and look up billing records.", ["db_read", "billing_api"])')
         print("# For one action, start with validate(...).")
         print('result = client.validate(agent.agent_id, "database_query", {"customer_id": "123"})')
         print("client.close()")
@@ -77,7 +77,11 @@ def _run_demo(base_url: str) -> int:
         print("Running a live validation against your trial...\n")
         client._ensure_api_key()
 
-        agent = client.create_agent("billing_support", ["db_read", "billing_api"])
+        agent = client.create_agent(
+            "Answer customer billing questions and look up billing records.",
+            ["db_read", "billing_api"],
+            environment="development",
+        )
         result = client.validate(
             agent.agent_id,
             "database_query",
@@ -86,7 +90,7 @@ def _run_demo(base_url: str) -> int:
         usage = client._request("GET", "/usage", _allow_private_request=True)
         remaining = usage.get("remaining")
 
-        print('✓ Agent created: "Demo Agent" (billing_support)')
+        print('✓ Agent created: "Demo Agent" (customer billing support)')
         print("✓ Action validated: database_query")
         print(f"  Result: {result.result.value}")
         print(f"  Trust score: {result.trust_score:.2f}")
@@ -98,10 +102,11 @@ def _run_demo(base_url: str) -> int:
 
         print("\nNext: drop this into your project:")
         print("──────────────────────────────────────")
-        print("from cerone import CeroneClient")
+        print("from cerone import CeroneClient, infer_agent_profile_from_action")
         print("client = CeroneClient()")
-        print('agent = client.create_agent("your-agent", ["your_permissions"])')
-        print('result = client.validate(agent.agent_id, "your_action", {})')
+        print('profile = infer_agent_profile_from_action("file_read", {"path": "README.md"}, workspace_target="repository files such as README.md")')
+        print('agent = client.create_agent(profile.purpose, profile.capabilities, environment="development")')
+        print('result = client.validate(agent.agent_id, "file_read", {"path": "README.md"})')
         print("print(result.result, result.trust_score)")
         print("client.close()")
         print("──────────────────────────────────────")

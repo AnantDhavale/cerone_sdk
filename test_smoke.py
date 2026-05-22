@@ -4,7 +4,11 @@ from agent_governance import (
     AgentGovernanceClient,
     AgentGovernanceResponse,
     AgentWrapper,
+    LocalErrorCategory,
+    LocalValidationError,
+    TelemetryEventType,
     ValidationResult,
+    infer_agent_profile_from_action,
 )
 from cerone import CeroneClient
 from cerone import ValidationError
@@ -63,6 +67,8 @@ def test_agent_wrapper_executes_when_approved():
             action=action,
             timestamp="2026-03-02T00:00:00Z",
             latency_ms=1,
+            policy_families=[],
+            matched_rule_ids=[],
         )
 
     client.validate = fake_validate
@@ -84,6 +90,19 @@ def test_parse_validation_result_supports_flagged():
 def test_parse_validation_result_unknown_defaults_to_error():
     client = AgentGovernanceClient(api_key="sk_test")
     assert client._parse_validation_result("unknown_new_state") == ValidationResult.ERROR
+
+
+def test_infer_agent_profile_from_action_aligns_file_read_intent():
+    profile = infer_agent_profile_from_action(
+        "file_read",
+        {"path": "README.md"},
+        workspace_target="repository files such as README.md",
+    )
+
+    assert profile.inferred is True
+    assert profile.capabilities == ["file_read"]
+    assert "Perform file_read operations" in profile.purpose
+    assert "repository files such as README.md" in profile.purpose
 
 
 def test_legacy_cerone_import_remains_available():
@@ -153,9 +172,10 @@ def test_validate_batch_rejects_empty_payload_locally():
     client = CeroneClient(api_key="sk_test")
     try:
         client.validate_batch([])
-    except ValidationError as exc:
+    except LocalValidationError as exc:
         assert "at least one validation item" in str(exc)
         assert "Use validate(...)" in str(exc)
+        assert exc.category == LocalErrorCategory.EMPTY_BATCH
     else:
         raise AssertionError("Expected ValidationError for empty batch")
 
@@ -172,9 +192,10 @@ def test_low_level_request_rejects_empty_batch_payload_locally(monkeypatch):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DeprecationWarning)
             client._request("POST", "/v1/validate/batch", json={"validations": []})
-    except ValidationError as exc:
+    except LocalValidationError as exc:
         assert "at least one validation item" in str(exc)
         assert "Use validate(...)" in str(exc)
+        assert exc.category == LocalErrorCategory.EMPTY_BATCH
     else:
         raise AssertionError("Expected ValidationError for low-level empty batch request")
     finally:
@@ -208,17 +229,102 @@ def test_cli_version_flag_prints_version(capsys):
     rc = cli_main(["--version"])
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert out == "1.1.16"
+    assert out == "1.1.17"
 
 
 def test_client_uses_cerone_branded_runtime_headers():
     client = CeroneClient(api_key="sk_test")
     try:
-        assert client._session.headers["User-Agent"] == "cerone-python-sdk/1.1.16"
+        assert client._session.headers["User-Agent"] == "cerone-python-sdk/1.1.17"
         assert client._session.headers["X-Cerone-SDK-Name"] == "cerone-python-sdk"
-        assert client._session.headers["X-Cerone-SDK-Version"] == "1.1.16"
+        assert client._session.headers["X-Cerone-SDK-Version"] == "1.1.17"
+        assert client._session.headers["X-Cerone-Runtime"] == "python"
+        assert client._session.headers["X-Cerone-Client-Session"].startswith("csn_")
     finally:
         client.close()
+
+
+def test_client_emits_telemetry_events_and_correlation_headers():
+    seen_events = []
+    client = CeroneClient(
+        api_key="sk_test_telemetry",
+        integration_id="openclaw-plugin",
+        client_session_id="csn_test123",
+        telemetry_hook=seen_events.append,
+    )
+    seen_request = {}
+
+    class _Response:
+        status_code = 200
+        text = '{"result": "approved", "semantic_alignment": 0.88, "trust_score": 0.99, "violations": [], "policy_families": [], "matched_rule_ids": [], "timestamp": "2026-03-02T00:00:00Z"}'
+
+        @staticmethod
+        def json():
+            return {
+                "result": "approved",
+                "semantic_alignment": 0.88,
+                "trust_score": 0.99,
+                "violations": [],
+                "policy_families": [],
+                "matched_rule_ids": [],
+                "timestamp": "2026-03-02T00:00:00Z",
+            }
+
+    def fake_request(method, url, timeout=None, **kwargs):
+        seen_request["method"] = method
+        seen_request["url"] = url
+        seen_request["headers"] = kwargs.get("headers", {})
+        return _Response()
+
+    client._session.request = fake_request
+    result = client.validate("agt_telemetry", "file_read", {"path": "README.md"})
+
+    assert result.result == ValidationResult.APPROVED
+    assert seen_request["method"] == "POST"
+    assert seen_request["url"].endswith("/v1/validate")
+    assert seen_request["headers"]["X-Cerone-Client-Intent"] == "sdk_validate_called"
+    assert seen_request["headers"]["X-Cerone-Interaction-Mode"] == "single_validation"
+    assert seen_request["headers"]["X-Cerone-Client-Session"] == "csn_test123"
+    assert seen_request["headers"]["X-Cerone-Integration-Id"] == "openclaw-plugin"
+    assert seen_request["headers"]["X-Cerone-Runtime"] == "python"
+    assert seen_request["headers"]["X-Cerone-Auth-Session"].startswith("auth_")
+    assert seen_request["headers"]["X-Cerone-Request-Sequence"] == "1"
+    assert seen_events[0].event_type == TelemetryEventType.CLIENT_INITIALIZED
+    assert any(event.event_type == TelemetryEventType.VALIDATION_ATTEMPTED for event in seen_events)
+    assert any(event.event_type == TelemetryEventType.VALIDATION_RESULT_RECEIVED for event in seen_events)
+
+
+def test_create_agent_for_action_uses_inferred_profile(monkeypatch):
+    client = CeroneClient(api_key="sk_test")
+
+    def fake_request(method, endpoint, **kwargs):
+        body = kwargs["json"]
+        assert method == "POST"
+        assert endpoint == "/v1/certificates"
+        assert body["capabilities"] == ["file_read"]
+        assert "Perform file_read operations" in body["purpose"]
+        return {
+            "certificate": {
+                "agent_id": "agt_profile",
+                "purpose": body["purpose"],
+                "capabilities": body["capabilities"],
+                "signature": "sig",
+                "issued_at": "2026-05-10T00:00:00Z",
+            },
+            "trust_score": 0.95,
+        }
+
+    client._request = fake_request
+    certificate = client.create_agent_for_action(
+        "file_read",
+        {"path": "README.md"},
+        workspace_target="repository files such as README.md",
+        environment="development",
+    )
+
+    assert certificate.agent_id == "agt_profile"
+    assert certificate.declared_capabilities == ["file_read"]
+    assert "Perform file_read operations" in certificate.declared_purpose
 
 
 def test_cli_doctor_bootstraps_trial_and_reports_usage(monkeypatch, capsys):
@@ -265,10 +371,11 @@ def test_cli_demo_runs_live_activation_flow(monkeypatch, capsys):
         calls["ensure"] += 1
         self.api_key = "sk_trial_exampletoken"
 
-    def fake_create(self, purpose, capabilities):
+    def fake_create(self, purpose, capabilities, environment=None, metadata=None):
         calls["create"] += 1
-        assert purpose == "billing_support"
+        assert purpose == "Answer customer billing questions and look up billing records."
         assert capabilities == ["db_read", "billing_api"]
+        assert environment == "development"
         return type(
             "AgentCertificate",
             (),
@@ -314,14 +421,14 @@ def test_cli_demo_runs_live_activation_flow(monkeypatch, capsys):
     assert rc == 0
     assert calls == {"ensure": 1, "create": 1, "validate": 1, "usage": 1}
     assert "Running a live validation against your trial..." in out
-    assert '✓ Agent created: "Demo Agent" (billing_support)' in out
+    assert '✓ Agent created: "Demo Agent" (customer billing support)' in out
     assert "✓ Action validated: database_query" in out
     assert "Result: approved" in out
     assert "Trust score: 0.97" in out
     assert "Latency: 43ms" in out
     assert "Your trial is working. 2399 validations remaining." in out
-    assert 'agent = client.create_agent("your-agent", ["your_permissions"])' in out
-    assert 'result = client.validate(agent.agent_id, "your_action", {})' in out
+    assert "infer_agent_profile_from_action" in out
+    assert 'result = client.validate(agent.agent_id, "file_read", {"path": "README.md"})' in out
 
 
 def test_validate_adds_client_intent_header():

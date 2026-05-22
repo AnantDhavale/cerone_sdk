@@ -133,7 +133,7 @@ Python SDK:
 ```python
 import asyncio
 
-from cerone import CeroneClient
+from cerone import CeroneClient, infer_agent_profile_from_action
 
 
 async def main():
@@ -142,15 +142,22 @@ async def main():
     )
 
     try:
+        profile = infer_agent_profile_from_action(
+            "file_read",
+            {"path": "README.md"},
+            workspace_target="repository files such as README.md",
+        )
+
         certificate = client.create_agent(
-            purpose="Customer billing support",
-            capabilities=["db_read", "billing_api"],
+            purpose=profile.purpose,
+            capabilities=profile.capabilities,
+            environment="development",
         )
 
         result = await client.validate_async(
             agent_id=certificate.agent_id,
-            action="database_query",
-            parameters={"table": "billing", "customer_id": "123"},
+            action="file_read",
+            parameters={"path": "README.md"},
         )
 
         print("Agent:", certificate.agent_id)
@@ -178,7 +185,7 @@ from cerone import CeroneClient
 client = CeroneClient()
 
 agent = client.create_agent(
-    purpose="Customer billing support",
+    purpose="Answer customer billing questions and look up billing records.",
     capabilities=["db_read", "billing_api"],
 )
 
@@ -190,6 +197,28 @@ result = client.validate(
 
 print(result.result, result.trust_score)
 client.close()
+```
+
+Purpose fidelity matters. If your integration is wrapping common tools like
+`file_read`, use an explicit purpose that matches what the agent is actually
+doing, or derive one with the helper below:
+
+```python
+from cerone import CeroneClient, infer_agent_profile_from_action
+
+client = CeroneClient(integration_id="openclaw-plugin")
+
+profile = infer_agent_profile_from_action(
+    "file_read",
+    {"path": "README.md"},
+    workspace_target="repository files such as README.md",
+)
+
+agent = client.create_agent(
+    purpose=profile.purpose,
+    capabilities=profile.capabilities,
+    environment="development",
+)
 ```
 
 Batch validation:
@@ -224,6 +253,37 @@ client.close()
 
 If you call `validate_batch([])`, the SDK raises a local error before making a
 request.
+
+## SDK Lifecycle Hooks
+
+Cerone can stay lightweight while still exposing structured local lifecycle
+signals for debugging, integration analytics, or an app-owned telemetry sink.
+
+```python
+from cerone import CeroneClient, TelemetryEventType
+
+
+def on_sdk_event(event):
+    if event.event_type == TelemetryEventType.LOCAL_ERROR:
+        print("Local SDK issue:", event.payload)
+
+
+client = CeroneClient(
+    integration_id="openclaw-plugin",
+    telemetry_hook=on_sdk_event,
+)
+```
+
+Current hook events include:
+
+- `client_initialized`
+- `hosted_trial_started`
+- `trial_token_received`
+- `agent_created`
+- `validation_attempted`
+- `validation_result_received`
+- `batch_validation_attempted`
+- `local_error`
 
 ---
 
