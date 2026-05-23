@@ -1,32 +1,39 @@
-# Cerone — Runtime Governance and Security for AI Agents
+# Cerone
 
-**Install it. Create an agent. Validate a real action. See a live runtime decision in minutes.**
+**Check AI agent actions before they run.**
 
-Cerone gives every AI agent a cryptographic identity, validates intended actions
-before execution, helps detect unsafe or evasive action patterns, and returns
-explicit runtime decisions:
+Cerone gives your agent an identity, lets you declare what it is supposed to do,
+and returns a runtime decision before a tool call executes:
 
 - `approved`
 - `flagged`
 - `rejected`
 
-Start immediately from the SDK with **2,500 one-time free validations**.
+Use it when your agent is about to do something real:
 
-Cerone is a thin runtime layer: keep your own model stack, add identity,
-validation, security checks, containment, and auditability around agent actions.
+- read or write files
+- hit internal APIs
+- query a database
+- perform billing, support, or ops actions
+- call tools on behalf of users
+
+Cerone is built for teams that want a simple question answered at runtime:
+
+**Should this agent be allowed to do this action right now?**
 
 ---
 
-## Why Developers Use Cerone
+## Why Developers Install Cerone
 
-- start immediately with hosted trial access from the SDK
-- validate agent actions before they execute
-- add runtime security checks without replacing the rest of your stack
-- detect risky action patterns like injection, exfiltration, or policy override
-- contain risky agents with explicit runtime decisions and operator controls
-- keep your own OpenAI, Anthropic, or other model key
-- get real decisions instead of vague policy claims
-- use a lean trust layer instead of a heavy control-plane rewrite
+- validate agent tool calls before execution
+- keep your existing model stack and keys
+- detect actions that do not fit the agent's declared purpose
+- catch risky or suspicious action payloads early
+- add identity, trust, and audit signals without rebuilding your app
+- start from a hosted trial directly from the SDK
+
+Cerone is not a model proxy. It sits around agent actions, not between you and
+your LLM provider.
 
 ---
 
@@ -36,23 +43,22 @@ validation, security checks, containment, and auditability around agent actions.
 pip install cerone
 ```
 
-After install, you can verify connectivity and bootstrap a hosted trial from the terminal:
+Fastest way to verify everything works:
 
 ```bash
 cerone demo
 ```
 
-If your shell does not pick up the installed script immediately, this also works:
+If your shell has not picked up the installed script yet:
 
 ```bash
 python3 -m cerone demo
 ```
 
-`cerone demo` is the fastest activation path. It bootstraps a hosted trial,
-creates a demo agent, runs one live validation, and prints your remaining trial
-usage.
+`cerone demo` bootstraps a hosted trial, creates a demo agent, runs one real
+validation, and prints the result.
 
-If you only want a lightweight connectivity and trial bootstrap check, use:
+If you only want a lightweight connectivity and hosted-trial bootstrap check:
 
 ```bash
 cerone
@@ -72,63 +78,17 @@ Then try:
 cerone demo
 ```
 
-If you are working from source, clone this repository and install it locally:
+If you are working from source:
 
 ```bash
 git clone https://github.com/AnantDhavale/cerone_sdk.git
 cd cerone_sdk
 pip install -e .
-
 ```
-
----
-
-## Access Modes
-
-Cerone now has two usage paths:
-
-1. **Hosted API trial**
-   - `CeroneClient()` can bootstrap an anonymous hosted trial token automatically
-   - the current hosted trial is designed for evaluation and demo use
-   - if the trial is exhausted, contact us for persistent access
-
-2. **Python SDK usage**
-   - use `CeroneClient()` with no key for hosted trial bootstrap
-   - use a provisioned key for persistent POCs or production environments
-
-Hosted signup and support:
-
-- [homersemantics.com](https://homersemantics.com)
-- [info@homersemantics.com](mailto:info@homersemantics.com)
-
-Hosted service & privacy terms:
-
-- [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
-- [PRIVACY.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/PRIVACY.md)
 
 ---
 
 ## Quick Start
-
-Terminal-first activation:
-
-```bash
-cerone demo
-```
-
-Fallback if the installed script is not on `PATH` yet:
-
-```bash
-python3 -m cerone demo
-```
-
-This runs one real hosted-trial flow end to end:
-- bootstraps a trial token
-- creates a demo agent
-- validates one safe action
-- shows the decision, trust score, latency, and remaining trial usage
-
-Python SDK:
 
 ```python
 import asyncio
@@ -148,21 +108,22 @@ async def main():
             workspace_target="repository files such as README.md",
         )
 
-        certificate = client.create_agent(
+        agent = client.create_agent(
             purpose=profile.purpose,
             capabilities=profile.capabilities,
             environment="development",
         )
 
         result = await client.validate_async(
-            agent_id=certificate.agent_id,
+            agent_id=agent.agent_id,
             action="file_read",
             parameters={"path": "README.md"},
         )
 
-        print("Agent:", certificate.agent_id)
+        print("Agent:", agent.agent_id)
         print("Decision:", result.result)
         print("Trust:", result.trust_score)
+        print("Alignment:", result.semantic_alignment)
     finally:
         await client.aclose()
 
@@ -170,14 +131,15 @@ async def main():
 asyncio.run(main())
 ```
 
+What happens here:
+
+1. Cerone creates an agent identity with declared purpose and capabilities.
+2. Your app asks Cerone to validate a real action.
+3. Cerone returns a runtime decision before that action is executed.
+
 ---
 
-## Single Action vs Batch Validation
-
-Start with `validate(...)` for a single action. Use `validate_batch([...])` only
-when you already have two or more validation items to send together.
-
-Single action:
+## A More Typical Sync Example
 
 ```python
 from cerone import CeroneClient
@@ -187,6 +149,7 @@ client = CeroneClient()
 agent = client.create_agent(
     purpose="Answer customer billing questions and look up billing records.",
     capabilities=["db_read", "billing_api"],
+    environment="development",
 )
 
 result = client.validate(
@@ -199,9 +162,21 @@ print(result.result, result.trust_score)
 client.close()
 ```
 
-Purpose fidelity matters. If your integration is wrapping common tools like
-`file_read`, use an explicit purpose that matches what the agent is actually
-doing, or derive one with the helper below:
+The intended flow is simple:
+
+- `approved` -> continue
+- `flagged` -> review or warn according to your app policy
+- `rejected` -> block execution
+
+---
+
+## Purpose Fidelity Matters
+
+Cerone works best when the declared purpose actually matches what the agent is
+doing.
+
+If you are wrapping common tools like `file_read`, avoid vague purpose text.
+This is better:
 
 ```python
 from cerone import CeroneClient, infer_agent_profile_from_action
@@ -221,7 +196,15 @@ agent = client.create_agent(
 )
 ```
 
-Batch validation:
+Use `infer_agent_profile_from_action(...)` when you want stronger default
+purpose and capability hints for common tool patterns.
+
+---
+
+## Single Validation vs Batch Validation
+
+Start with `validate(...)` for one action. Use `validate_batch([...])` only when
+you already have multiple validation items to send together.
 
 ```python
 from cerone import CeroneClient
@@ -251,13 +234,35 @@ for item in results:
 client.close()
 ```
 
-If you call `validate_batch([])`, the SDK raises a local error before making a
+If you call `validate_batch([])`, the SDK raises a local error before sending a
 request.
+
+---
+
+## What Cerone Checks
+
+Cerone is useful when permissions alone are not enough.
+
+It helps answer questions like:
+
+- is this action consistent with the agent's declared purpose?
+- is this tool use inside the granted capability scope?
+- does this payload look suspicious, evasive, or unsafe?
+- should the action be allowed, flagged, or blocked?
+
+Depending on the action and context, Cerone can help catch:
+
+- agents drifting outside their role
+- over-permitted agents doing the wrong thing
+- suspicious file, API, or data access patterns
+- manipulative or policy-evasive tool calls
+
+---
 
 ## SDK Lifecycle Hooks
 
-Cerone can stay lightweight while still exposing structured local lifecycle
-signals for debugging, integration analytics, or an app-owned telemetry sink.
+Cerone stays lightweight, but it can emit structured local lifecycle signals for
+debugging, integration analytics, or your own telemetry sink.
 
 ```python
 from cerone import CeroneClient, TelemetryEventType
@@ -274,7 +279,7 @@ client = CeroneClient(
 )
 ```
 
-Current hook events include:
+Current hook events:
 
 - `client_initialized`
 - `hosted_trial_started`
@@ -287,133 +292,41 @@ Current hook events include:
 
 ---
 
-## What Cerone Does
+## Hosted Trial and Access
 
-Cerone is a runtime governance, trust, and security layer for AI agents.
+Cerone currently has two usage paths.
 
-It:
-- gives each agent a cryptographic identity
-- validates intended actions against declared purpose and capability
-- returns explicit runtime decisions before execution
-- helps detect unsafe, manipulative, or exfiltration-oriented action payloads
-- records audit and trust signals across agent activity
-- preserves lineage and delegation boundaries where applicable
+### 1. Hosted trial
 
----
-
-## What Cerone Validates
-
-| Check | What it catches |
-|---|---|
-| **Cryptographic identity** | Impersonation, spoofed agents |
-| **Semantic alignment** | Agents acting outside their declared purpose |
-| **Trust scoring** | Behavioural drift over time |
-| **Capability scope** | Agents calling tools they were never granted |
-| **Lineage integrity** | Unauthorized parent-child relationships |
-
----
-
-## Why Security Teams Care
-
-Cerone is not just a governance layer. It is also a runtime security layer for
-agent actions.
-
-That means Cerone can help with:
-
-- interception before execution, not just detection after the fact
-- context-aware validation of whether an action fits what this agent is
-  supposed to be doing
-- zero-trust treatment of agent tool calls until they are validated
-- injection and instruction-override resistance
-- secret harvesting and exfiltration detection
-- explicit allow / flag / reject decisions instead of silent risk
-- containment through manual kill switch and lineage-aware controls
-- runtime audit trails for incident review and operator oversight
-
-The goal is not to replace your whole security stack. The goal is to give AI
-agents a thin runtime control and security layer exactly where agent misuse
-happens: at action time.
-
-In practice, Cerone's security model is:
-
-- **interception before execution**: validate intended tool use before the tool
-  runs
-- **context-aware validation**: check whether an action is consistent with the
-  agent's declared purpose, capability, and runtime context
-- **zero-trust for agents**: do not assume a previously well-behaved agent
-  should automatically be trusted on its next action
-
----
-
-## Runtime Policy and Containment
-
-Cerone is also evolving into a stronger runtime policy layer, not just an
-identity and semantic-alignment layer.
-
-The current direction includes runtime detections for patterns such as:
-
-- prompt injection
-- instruction override
-- role manipulation
-- policy evasion
-- secret harvesting
-- data exfiltration
-- obfuscation and encoded payload tricks
-
-These checks are intended to complement semantic validation:
-
-- semantic alignment asks whether the action fits the declared purpose
-- runtime policy checks ask whether the action payload itself looks unsafe,
-  manipulative, evasive, or exfiltration-oriented
-
-Cerone also has an operator-controlled containment direction:
-
-- manual kill switch support
-- soft containment
-- hard containment
-
-Important:
-- detection does not automatically activate containment by default
-- the intended default behavior is operator-controlled, manual activation
-
-For integrators, the practical rule remains simple:
-
-- `approved` -> continue
-- `flagged` -> review or warn according to your app policy
-- `rejected` -> block execution
-
----
-
-## Trial and Access
-
-Cerone currently has two usage paths:
-
-### 1. Hosted Trial
 - `CeroneClient()` can bootstrap an anonymous hosted trial token automatically
-- includes **2,500 one-time successful validations**
-- no manual signup required to begin evaluation
-- intended for initial testing and demos
+- includes **2,500 one-time validations**
+- designed for first use, testing, and demos
+- no model proxy required
 
-### 2. Persistent Access
-- for POCs, pilots, and production usage
+### 2. Persistent access
+
+- for POCs, pilots, and production environments
 - contact us for provisioned persistent SDK access
 
-Support and contact:
+Support and onboarding:
+
 - [homersemantics.com](https://homersemantics.com)
 - [info@homersemantics.com](mailto:info@homersemantics.com)
 
-Hosted service & privacy terms:
+Hosted service terms:
+
 - [TERMS_OF_SERVICE.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/TERMS_OF_SERVICE.md)
 - [PRIVACY.md](https://github.com/AnantDhavale/cerone_sdk/blob/main/PRIVACY.md)
+
 ---
 
 ## Bring Your Own Model Key
 
-Cerone governs agent **behaviour**, not inference.
+Cerone validates agent behaviour. It does not replace your inference provider.
 
-You keep your own OpenAI, Anthropic, or other provider key and pass it directly
-to your model calls. Cerone validates the intended action and records the
-governance trail, but it does not sit in the middle of your model billing path.
+You keep your own OpenAI, Anthropic, or other provider key and send model calls
+through your normal stack. Cerone checks intended actions and returns runtime
+decisions around those actions.
 
 ```python
 import asyncio
@@ -429,13 +342,13 @@ async def main():
     openai_client = openai.AsyncOpenAI(api_key="sk-...")
 
     try:
-        certificate = client.create_agent(
+        agent = client.create_agent(
             purpose="Summarise support tickets",
             capabilities=["read_ticket", "write_summary"],
         )
 
         validation = await client.validate_async(
-            agent_id=certificate.agent_id,
+            agent_id=agent.agent_id,
             action="write_summary",
             parameters={"ticket_id": "T-001"},
         )
@@ -455,59 +368,17 @@ asyncio.run(main())
 
 ---
 
-## Why Cerone Is Different
-
-Many vendors talk about agentic governance. Very few have something real you
-can install, run, and demo.
-
-Cerone is different because it is:
-- **runtime-real**: it makes live governance decisions in the execution path
-- **security-relevant**: it helps catch misuse before tools execute
-- **lean**: it adds trust and control without demanding a full platform rewrite
-- **developer-usable**: installable, callable, and demoable now
-- **business-aware**: designed to support workflow-aware governance, not just technical checks
-
-Most of the category still looks theoretical. Cerone is meant to be used.
-
----
-
-## Architecture
-
-```text
-Your Agent Code
-      │
-      ▼
-  Cerone SDK  ──────────────────────────────────────────┐
-      │                                                  │
-      ▼                                                  ▼
-AZTP Platform (api.homersemantics.com)  Your LLM Provider
-  ├─ Identity Manager
-  ├─ Semantic Validator
-  ├─ Trust Engine
-  └─ Audit Logger
-```
-
-Cerone is distributed by design: a thin SDK on the client side and centralized
-identity, validation, governance, and audit logic on the server side.
-
----
-
 ## Other SDKs
 
-Cerone now has more than one SDK surface.
+Current Cerone SDK surfaces:
 
-Current SDKs:
-
-- **Python SDK**
+- **Python**
   - package: `cerone`
   - repo: [github.com/AnantDhavale/cerone_sdk](https://github.com/AnantDhavale/cerone_sdk)
 
-- **Node / JavaScript SDK**
+- **Node / JavaScript**
   - package: `agent-governance`
   - repo: [github.com/AnantDhavale/agent-governance-js](https://github.com/AnantDhavale/agent-governance-js)
-
-The product name is **Cerone** across both SDKs.  
-The npm package uses the name `agent-governance` for discoverability.
 
 If you are building in Python:
 
@@ -536,7 +407,8 @@ Free trial and hosted commercial terms are subject to change.
 
 Homer Semantics and Anant Dhavale are not liable for losses, damages, business
 interruption, model outputs, workflow outcomes, or downstream actions arising
-from use of the SDK or hosted service. Use Cerone at your own discretion and risk.
+from use of the SDK or hosted service. Use Cerone at your own discretion and
+risk.
 
 ---
 
@@ -546,7 +418,5 @@ from use of the SDK or hosted service. Use Cerone at your own discretion and ris
 - Support: [info@homersemantics.com](mailto:info@homersemantics.com)
 - Founder: [anantdhavale@gmail.com](mailto:anantdhavale@gmail.com)
 
-If you are building with agents and want runtime governance that is actually
-usable, reach out.
-
-By downloading this SDK user acknowledge the terms of service and privacy as mentioned here. 
+If you are building with agents and want tighter control over what they are
+allowed to do, reach out.
