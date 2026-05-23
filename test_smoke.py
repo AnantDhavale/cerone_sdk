@@ -229,7 +229,7 @@ def test_cli_version_flag_prints_version(capsys):
     rc = cli_main(["--version"])
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert out == "1.1.19"
+    assert out == "1.1.20"
 
 
 def test_client_uses_cerone_branded_runtime_headers():
