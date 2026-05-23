@@ -405,11 +405,6 @@ The SDK source license and the hosted Cerone service terms are separate:
 
 Free trial and hosted commercial terms are subject to change.
 
-Homer Semantics and Anant Dhavale are not liable for losses, damages, business
-interruption, model outputs, workflow outcomes, or downstream actions arising
-from use of the SDK or hosted service. Use Cerone at your own discretion and
-risk.
-
 ---
 
 ## Contact
