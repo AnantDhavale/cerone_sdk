@@ -58,6 +58,19 @@ python3 -m cerone demo
 `cerone demo` bootstraps a hosted trial, creates a demo agent, runs one real
 validation, and prints the result.
 
+### Once The Trial Starts, Do This Next
+
+Do not stop at "trial started."
+
+Go straight to the first value path:
+
+1. Create your first agent with a real purpose and capability set.
+2. Validate one real action your app actually wants to run.
+3. Look at the returned decision: `approved`, `flagged`, or `rejected`.
+
+If you only bootstrap the trial but never create an agent or validate an
+action, you have not actually tested Cerone yet.
+
 If you only want a lightweight connectivity and hosted-trial bootstrap check:
 
 ```bash
