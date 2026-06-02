@@ -428,3 +428,4 @@ Free trial and hosted commercial terms are subject to change.
 
 If you are building with agents and want tighter control over what they are
 allowed to do, reach out.
+Now with advanced analytics. 
