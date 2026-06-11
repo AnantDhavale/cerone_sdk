@@ -323,7 +323,7 @@ Cerone currently has two usage paths.
 
 Support and onboarding:
 
-- [homersemantics.com](https://homersemantics.com)
+- [homersemantics.com](https://www.homersemantics.com/ai-agent-governance-and-oauth)
 - [info@homersemantics.com](mailto:info@homersemantics.com)
 
 Hosted service terms:
